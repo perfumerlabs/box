@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database name="box" defaultIdMethod="native" namespace="Box\Model">
+    <table name="_client" phpName="Client">
+        <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
+        <column name="name" type="varchar" size="255"/>
+        <column name="secret" type="varchar" size="255"/>
+        <column name="is_admin" type="boolean" defaultValue="false" required="true"/>
+        <unique>
+            <unique-column name="secret"/>
+        </unique>
+        <behavior name="timestampable">
+            <parameter name="disable_updated_at" value="true" />
+        </behavior>
+    </table>
+
+    <table name="_access" phpName="Access">
+        <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
+        <column name="collection_id" type="integer" required="true"/>
+        <column name="client_id" type="integer" required="true"/>
+        <column name="level" type="enum" valueSet="read,write" required="true"/>
+        <foreign-key foreignTable="_client" phpName="Client">
+            <reference local="client_id" foreign="id"/>
+        </foreign-key>
+        <foreign-key foreignTable="_collection" phpName="Collection">
+            <reference local="collection_id" foreign="id"/>
+        </foreign-key>
+        <behavior name="timestampable">
+            <parameter name="disable_updated_at" value="true" />
+        </behavior>
+    </table>
+
+    <table name="_collection" phpName="Coll">
+        <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
+        <column name="name" type="varchar" size="255" required="true"/>
+        <unique>
+            <unique-column name="name"/>
+        </unique>
+        <behavior name="timestampable">
+            <parameter name="disable_updated_at" value="true" />
+        </behavior>
+    </table>
+
+<!--    <table name="sample" phpName="Sample">-->
+<!--        <column name="id" type="bigint" required="true" primaryKey="true" autoIncrement="true"/>-->
+<!--        <column name="key" type="varchar" size="255" required="true"/>-->
+<!--        <column name="data" type="longvarchar" required="true"/>-->
+<!--        <unique>-->
+<!--            <unique-column name="key"/>-->
+<!--        </unique>-->
+<!--        <behavior name="timestampable">-->
+<!--            <parameter name="disable_updated_at" value="true" />-->
+<!--        </behavior>-->
+<!--    </table>-->
+</database>
