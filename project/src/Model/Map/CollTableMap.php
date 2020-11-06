@@ -16,7 +16,7 @@ use Propel\Runtime\Map\TableMapTrait;
 
 
 /**
- * This class defines the structure of the '_collection' table.
+ * This class defines the structure of the 'box_collection' table.
  *
  *
  *
@@ -24,7 +24,6 @@ use Propel\Runtime\Map\TableMapTrait;
  * For example, the createSelectSql() method checks the type of a given column used in an
  * ORDER BY clause to know whether it needs to apply SQL to make the ORDER BY case-insensitive
  * (i.e. if it's a text column type).
- *
  */
 class CollTableMap extends TableMap
 {
@@ -44,7 +43,7 @@ class CollTableMap extends TableMap
     /**
      * The table name for this class
      */
-    const TABLE_NAME = '_collection';
+    const TABLE_NAME = 'box_collection';
 
     /**
      * The related Propel class for this table
@@ -74,17 +73,17 @@ class CollTableMap extends TableMap
     /**
      * the column name for the id field
      */
-    const COL_ID = '_collection.id';
+    const COL_ID = 'box_collection.id';
 
     /**
      * the column name for the name field
      */
-    const COL_NAME = '_collection.name';
+    const COL_NAME = 'box_collection.name';
 
     /**
      * the column name for the created_at field
      */
-    const COL_CREATED_AT = '_collection.created_at';
+    const COL_CREATED_AT = 'box_collection.created_at';
 
     /**
      * The default string format for model objects of the related table
@@ -129,13 +128,13 @@ class CollTableMap extends TableMap
     public function initialize()
     {
         // attributes
-        $this->setName('_collection');
+        $this->setName('box_collection');
         $this->setPhpName('Coll');
         $this->setIdentifierQuoting(false);
         $this->setClassName('\\Box\\Model\\Coll');
         $this->setPackage('');
         $this->setUseIdGenerator(true);
-        $this->setPrimaryKeyMethodInfo('_collection_id_seq');
+        $this->setPrimaryKeyMethodInfo('box_collection_id_seq');
         // columns
         $this->addPrimaryKey('id', 'Id', 'INTEGER', true, null, null);
         $this->addColumn('name', 'Name', 'VARCHAR', true, 255, null);
@@ -385,7 +384,7 @@ class CollTableMap extends TableMap
     }
 
     /**
-     * Deletes all rows from the _collection table.
+     * Deletes all rows from the box_collection table.
      *
      * @param ConnectionInterface $con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).

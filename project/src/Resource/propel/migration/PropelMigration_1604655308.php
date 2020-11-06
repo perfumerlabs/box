@@ -4,10 +4,10 @@ use Propel\Generator\Manager\MigrationManager;
 
 /**
  * Data object containing the SQL and PHP code to migrate the database
- * up to version 1597833055.
- * Generated on 2020-08-19 16:30:55 by root
+ * up to version 1604655308.
+ * Generated on 2020-11-06 09:35:08 by box
  */
-class PropelMigration_1597833055
+class PropelMigration_1604655308
 {
     public $comment = '';
 
@@ -40,10 +40,10 @@ class PropelMigration_1597833055
     public function getUpSQL()
     {
         return array (
-  'box' => '
+            'box' => '
 BEGIN;
 
-CREATE TABLE "_client"
+CREATE TABLE "box_client"
 (
     "id" serial NOT NULL,
     "name" VARCHAR(255),
@@ -51,10 +51,10 @@ CREATE TABLE "_client"
     "is_admin" BOOLEAN DEFAULT \'f\' NOT NULL,
     "created_at" TIMESTAMP,
     PRIMARY KEY ("id"),
-    CONSTRAINT "_client_u_998256" UNIQUE ("secret")
+    CONSTRAINT "box_client_u_998256" UNIQUE ("secret")
 );
 
-CREATE TABLE "_access"
+CREATE TABLE "box_access"
 (
     "id" serial NOT NULL,
     "collection_id" INTEGER NOT NULL,
@@ -64,26 +64,26 @@ CREATE TABLE "_access"
     PRIMARY KEY ("id")
 );
 
-CREATE TABLE "_collection"
+CREATE TABLE "box_collection"
 (
     "id" serial NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "created_at" TIMESTAMP,
     PRIMARY KEY ("id"),
-    CONSTRAINT "_collection_u_d94269" UNIQUE ("name")
+    CONSTRAINT "box_collection_u_d94269" UNIQUE ("name")
 );
 
-ALTER TABLE "_access" ADD CONSTRAINT "_access_fk_c8e74e"
+ALTER TABLE "box_access" ADD CONSTRAINT "box_access_fk_455815"
     FOREIGN KEY ("client_id")
-    REFERENCES "_client" ("id");
+    REFERENCES "box_client" ("id");
 
-ALTER TABLE "_access" ADD CONSTRAINT "_access_fk_efa6cb"
+ALTER TABLE "box_access" ADD CONSTRAINT "box_access_fk_08edab"
     FOREIGN KEY ("collection_id")
-    REFERENCES "_collection" ("id");
+    REFERENCES "box_collection" ("id");
 
 COMMIT;
 ',
-);
+        );
     }
 
     /**
@@ -95,18 +95,18 @@ COMMIT;
     public function getDownSQL()
     {
         return array (
-  'box' => '
+            'box' => '
 BEGIN;
 
-DROP TABLE IF EXISTS "_client" CASCADE;
+DROP TABLE IF EXISTS "box_client" CASCADE;
 
-DROP TABLE IF EXISTS "_access" CASCADE;
+DROP TABLE IF EXISTS "box_access" CASCADE;
 
-DROP TABLE IF EXISTS "_collection" CASCADE;
+DROP TABLE IF EXISTS "box_collection" CASCADE;
 
 COMMIT;
 ',
-);
+        );
     }
 
 }

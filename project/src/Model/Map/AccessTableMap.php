@@ -16,7 +16,7 @@ use Propel\Runtime\Map\TableMapTrait;
 
 
 /**
- * This class defines the structure of the '_access' table.
+ * This class defines the structure of the 'box_access' table.
  *
  *
  *
@@ -24,7 +24,6 @@ use Propel\Runtime\Map\TableMapTrait;
  * For example, the createSelectSql() method checks the type of a given column used in an
  * ORDER BY clause to know whether it needs to apply SQL to make the ORDER BY case-insensitive
  * (i.e. if it's a text column type).
- *
  */
 class AccessTableMap extends TableMap
 {
@@ -44,7 +43,7 @@ class AccessTableMap extends TableMap
     /**
      * The table name for this class
      */
-    const TABLE_NAME = '_access';
+    const TABLE_NAME = 'box_access';
 
     /**
      * The related Propel class for this table
@@ -74,27 +73,27 @@ class AccessTableMap extends TableMap
     /**
      * the column name for the id field
      */
-    const COL_ID = '_access.id';
+    const COL_ID = 'box_access.id';
 
     /**
      * the column name for the collection_id field
      */
-    const COL_COLLECTION_ID = '_access.collection_id';
+    const COL_COLLECTION_ID = 'box_access.collection_id';
 
     /**
      * the column name for the client_id field
      */
-    const COL_CLIENT_ID = '_access.client_id';
+    const COL_CLIENT_ID = 'box_access.client_id';
 
     /**
      * the column name for the level field
      */
-    const COL_LEVEL = '_access.level';
+    const COL_LEVEL = 'box_access.level';
 
     /**
      * the column name for the created_at field
      */
-    const COL_CREATED_AT = '_access.created_at';
+    const COL_CREATED_AT = 'box_access.created_at';
 
     /**
      * The default string format for model objects of the related table
@@ -172,17 +171,17 @@ class AccessTableMap extends TableMap
     public function initialize()
     {
         // attributes
-        $this->setName('_access');
+        $this->setName('box_access');
         $this->setPhpName('Access');
         $this->setIdentifierQuoting(false);
         $this->setClassName('\\Box\\Model\\Access');
         $this->setPackage('');
         $this->setUseIdGenerator(true);
-        $this->setPrimaryKeyMethodInfo('_access_id_seq');
+        $this->setPrimaryKeyMethodInfo('box_access_id_seq');
         // columns
         $this->addPrimaryKey('id', 'Id', 'INTEGER', true, null, null);
-        $this->addForeignKey('collection_id', 'CollectionId', 'INTEGER', '_collection', 'id', true, null, null);
-        $this->addForeignKey('client_id', 'ClientId', 'INTEGER', '_client', 'id', true, null, null);
+        $this->addForeignKey('collection_id', 'CollectionId', 'INTEGER', 'box_collection', 'id', true, null, null);
+        $this->addForeignKey('client_id', 'ClientId', 'INTEGER', 'box_client', 'id', true, null, null);
         $this->addColumn('level', 'Level', 'ENUM', true, null, null);
         $this->getColumn('level')->setValueSet(array (
   0 => 'read',
@@ -445,7 +444,7 @@ class AccessTableMap extends TableMap
     }
 
     /**
-     * Deletes all rows from the _access table.
+     * Deletes all rows from the box_access table.
      *
      * @param ConnectionInterface $con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).

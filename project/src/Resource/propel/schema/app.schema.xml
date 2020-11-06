@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <database name="box" defaultIdMethod="native" namespace="Box\Model">
-    <table name="_client" phpName="Client">
+    <table name="box_client" phpName="Client">
         <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
         <column name="name" type="varchar" size="255"/>
         <column name="secret" type="varchar" size="255"/>
@@ -13,15 +13,15 @@
         </behavior>
     </table>
 
-    <table name="_access" phpName="Access">
+    <table name="box_access" phpName="Access">
         <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
         <column name="collection_id" type="integer" required="true"/>
         <column name="client_id" type="integer" required="true"/>
         <column name="level" type="enum" valueSet="read,write" required="true"/>
-        <foreign-key foreignTable="_client" phpName="Client">
+        <foreign-key foreignTable="box_client" phpName="Client">
             <reference local="client_id" foreign="id"/>
         </foreign-key>
-        <foreign-key foreignTable="_collection" phpName="Collection">
+        <foreign-key foreignTable="box_collection" phpName="Collection">
             <reference local="collection_id" foreign="id"/>
         </foreign-key>
         <behavior name="timestampable">
@@ -29,7 +29,7 @@
         </behavior>
     </table>
 
-    <table name="_collection" phpName="Coll">
+    <table name="box_collection" phpName="Coll">
         <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
         <column name="name" type="varchar" size="255" required="true"/>
         <unique>

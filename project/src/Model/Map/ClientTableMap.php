@@ -16,7 +16,7 @@ use Propel\Runtime\Map\TableMapTrait;
 
 
 /**
- * This class defines the structure of the '_client' table.
+ * This class defines the structure of the 'box_client' table.
  *
  *
  *
@@ -24,7 +24,6 @@ use Propel\Runtime\Map\TableMapTrait;
  * For example, the createSelectSql() method checks the type of a given column used in an
  * ORDER BY clause to know whether it needs to apply SQL to make the ORDER BY case-insensitive
  * (i.e. if it's a text column type).
- *
  */
 class ClientTableMap extends TableMap
 {
@@ -44,7 +43,7 @@ class ClientTableMap extends TableMap
     /**
      * The table name for this class
      */
-    const TABLE_NAME = '_client';
+    const TABLE_NAME = 'box_client';
 
     /**
      * The related Propel class for this table
@@ -74,27 +73,27 @@ class ClientTableMap extends TableMap
     /**
      * the column name for the id field
      */
-    const COL_ID = '_client.id';
+    const COL_ID = 'box_client.id';
 
     /**
      * the column name for the name field
      */
-    const COL_NAME = '_client.name';
+    const COL_NAME = 'box_client.name';
 
     /**
      * the column name for the secret field
      */
-    const COL_SECRET = '_client.secret';
+    const COL_SECRET = 'box_client.secret';
 
     /**
      * the column name for the is_admin field
      */
-    const COL_IS_ADMIN = '_client.is_admin';
+    const COL_IS_ADMIN = 'box_client.is_admin';
 
     /**
      * the column name for the created_at field
      */
-    const COL_CREATED_AT = '_client.created_at';
+    const COL_CREATED_AT = 'box_client.created_at';
 
     /**
      * The default string format for model objects of the related table
@@ -139,13 +138,13 @@ class ClientTableMap extends TableMap
     public function initialize()
     {
         // attributes
-        $this->setName('_client');
+        $this->setName('box_client');
         $this->setPhpName('Client');
         $this->setIdentifierQuoting(false);
         $this->setClassName('\\Box\\Model\\Client');
         $this->setPackage('');
         $this->setUseIdGenerator(true);
-        $this->setPrimaryKeyMethodInfo('_client_id_seq');
+        $this->setPrimaryKeyMethodInfo('box_client_id_seq');
         // columns
         $this->addPrimaryKey('id', 'Id', 'INTEGER', true, null, null);
         $this->addColumn('name', 'Name', 'VARCHAR', false, 255, null);
@@ -401,7 +400,7 @@ class ClientTableMap extends TableMap
     }
 
     /**
-     * Deletes all rows from the _client table.
+     * Deletes all rows from the box_client table.
      *
      * @param ConnectionInterface $con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).

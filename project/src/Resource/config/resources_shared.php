@@ -13,6 +13,7 @@ return [
         'schema_dir'    => 'src/Resource/propel/schema',
         'model_dir'     => 'src/Model',
         'migration_dir' => 'src/Resource/propel/migration',
+        'migration_table' => 'box_propel_migration',
     ],
     'database' => [
         'db' => 'PG_DATABASE',

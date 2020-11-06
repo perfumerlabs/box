@@ -16,7 +16,7 @@ use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\PropelException;
 
 /**
- * Base class that represents a query for the '_collection' table.
+ * Base class that represents a query for the 'box_collection' table.
  *
  *
  *
@@ -164,7 +164,7 @@ abstract class CollQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, name, created_at FROM _collection WHERE id = :p0';
+        $sql = 'SELECT id, name, created_at FROM box_collection WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -453,7 +453,7 @@ abstract class CollQuery extends ModelCriteria
     }
 
     /**
-     * Deletes all rows from the _collection table.
+     * Deletes all rows from the box_collection table.
      *
      * @param ConnectionInterface $con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).

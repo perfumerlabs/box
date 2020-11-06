@@ -1,6 +1,6 @@
 FROM ubuntu:xenial
 
-MAINTAINER Ilyas Makashev <mehmatovec@gmail.com>
+LABEL authors="Ilyas Makashev mehmatovec@gmail.com"
 
 RUN set -x \
     && apt-get update \
@@ -56,7 +56,6 @@ ENV PG_PORT 5432
 ENV PG_DATABASE box
 ENV PG_USER postgres
 ENV PG_PASSWORD postgres
-ENV BOX_HOST box
 ENV BOX_FETCH_LIMIT 100
 ENV PHP_PM_MAX_CHILDREN 10
 ENV PHP_PM_MAX_REQUESTS 500

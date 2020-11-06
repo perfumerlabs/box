@@ -8,7 +8,7 @@ class Gateway extends CompositeGateway
 {
     protected function configure(): void
     {
-        $this->addModule('box', 'BOX_HOST', null, 'http');
-        $this->addModule('box', 'box',      null, 'cli');
+        $this->addModule('box', null,  null, 'http');
+        $this->addModule('box', 'box', null, 'cli');
     }
 }

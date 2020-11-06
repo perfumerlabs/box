@@ -16,7 +16,7 @@ use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\PropelException;
 
 /**
- * Base class that represents a query for the '_client' table.
+ * Base class that represents a query for the 'box_client' table.
  *
  *
  *
@@ -174,7 +174,7 @@ abstract class ClientQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, name, secret, is_admin, created_at FROM _client WHERE id = :p0';
+        $sql = 'SELECT id, name, secret, is_admin, created_at FROM box_client WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -515,7 +515,7 @@ abstract class ClientQuery extends ModelCriteria
     }
 
     /**
-     * Deletes all rows from the _client table.
+     * Deletes all rows from the box_client table.
      *
      * @param ConnectionInterface $con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).

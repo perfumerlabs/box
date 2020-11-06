@@ -17,13 +17,12 @@ Installation
 ```bash
 docker run \
 -p 80:80/tcp \
--e BOX_HOST=box \
 -e PG_HOST=db \
 -e PG_PORT=5432 \
 -e PG_DATABASE=box_db \
 -e PG_USER=user \
 -e PG_PASSWORD=password \
--d perfumerlabs/box:v1.0.0
+-d perfumerlabs/box:v2.0.0
 ```
 
 Database must be created before container startup.
@@ -31,15 +30,14 @@ Database must be created before container startup.
 Environment variables
 =====================
 
-- BOX_HOST - server domain (without http://). Required.
-- BOX_FETCH_LIMIT - a fixed number of documents to return in "/documents" API method. Default value is 100.
-- PHP_PM_MAX_CHILDREN - number of FPM workers. Default value is 10.
-- PHP_PM_MAX_REQUESTS - number of FPM max requests. Default value is 500.
+- BOX_FETCH_LIMIT - a maximum number of documents to return in "/documents" API method. Default value is 100.
 - PG_HOST - PostgreSQL host. Required.
 - PG_PORT - PostgreSQL port. Default value is 5432.
 - PG_DATABASE - PostgreSQL database name. Required.
 - PG_USER - PostgreSQL user name. Required.
 - PG_PASSWORD - PostgreSQL user password. Required.
+- PHP_PM_MAX_CHILDREN - number of FPM workers. Default value is 10.
+- PHP_PM_MAX_REQUESTS - number of FPM max requests. Default value is 500.
 
 Volumes
 =======
@@ -47,13 +45,6 @@ Volumes
 This image has no volumes.
 
 If you want to make any additional configuration of container, mount your bash script to /opt/setup.sh. This script will be executed on container setup.
-
-Software
-========
-
-1. Ubuntu 16.04 Xenial
-1. Nginx 1.16
-1. PHP 7.4
 
 Database tables
 ===============
@@ -131,6 +122,8 @@ Access: write access to collection.
 
 Request parameters (json):
 - collection [string,required] - name of the collection.
+- event [string,required] - category of content.
+- code [string,required] - unique key of the document. Another document with same code will be ignored.
 - data [mixed,required] - any JSON-serializable content.
 
 Request example:
@@ -138,12 +131,14 @@ Request example:
 ```json
 {
     "collection": "foobar",
+    "event": "my_event",
+    "code": "unique_code",
     "data": "Lorem ipsum dolor sit amet"
 }
 ```
 
 Response parameters (json):
-- key [string] - unique identity of inserted document.
+- id [integer] - unique identity of inserted document.
 
 Response example:
 
@@ -151,12 +146,12 @@ Response example:
 {
     "status": true,
     "content": {
-        "key": "qwerty"
+        "id": 100
     }
 }
 ```
 
-### Get documents (returns maximum of BOX_FETCH_LIMIT documents)
+### List documents
 
 `GET /documents`
 
@@ -164,30 +159,34 @@ Access: read access to collection.
 
 Request parameters (json):
 - collection [string,required] - name of the collection.
-- key [string,optional] - the key of document to start from.
+- id [integer,optional] - the id of document to start from.
+- limit [integer,optional] - number of documents to return. Limited with BOX_FETCH_LIMIT option.
 
 Request example:
 
 ```json
 {
     "collection": "foobar",
-    "key": "qwerty"
+    "id": 100
 }
 ```
 
 Response parameters (json):
-- key [string] - unique identity of inserted document.
+- event [string] - category of content.
+- code [string] - unique key of the document.
+- id [integer] - unique identity of inserted document.
 - data [mixed] - content of inserted document.
 
 Response example:
-
 ```json
 {
     "status": true,
     "content": {
         "documents": [
             {
-                "key": "foo",
+                "id": 101,
+                "event": "my_event",
+                "code": "unique_code",
                 "data": [1, 2, 3]
             }
         ]
@@ -203,14 +202,14 @@ Access: read access to collection.
 
 Request parameters (json):
 - collection [string,required] - name of the collection.
-- key [string,optional] - the key of document to start from.
+- id [integer,optional] - the id of document to start from.
 
 Request example:
 
 ```json
 {
     "collection": "foobar",
-    "key": "qwerty"
+    "id": 100
 }
 ```
 
@@ -227,3 +226,10 @@ Response example:
     }
 }
 ```
+
+Software
+========
+
+1. Ubuntu 16.04 Xenial
+1. Nginx 1.16
+1. PHP 7.4

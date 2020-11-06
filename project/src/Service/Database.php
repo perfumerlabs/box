@@ -4,7 +4,6 @@ namespace Box\Service;
 
 use Box\Model\Client;
 use Envms\FluentPDO\Query;
-use Perfumer\Helper\Text;
 
 class Database
 {
@@ -53,72 +52,62 @@ class Database
         return new Query($this->pdo);
     }
 
-    public function insertDocument(Client $client, string $collection, $data): ?string
+    public function getCollectionName($collection)
+    {
+        return 'box_data_' . preg_replace('/[^a-zA-Z0-9_]/', '', $collection);
+    }
+
+    public function insertDocument(Client $client, string $collection, string $event, string $code, $data): ?int
     {
         $pdo = $this->getPdo();
-
-        if (!preg_match('/^[a-z0-9_]+$/', $collection)) {
-            return null;
-        }
-
-        $key = $this->generateDocumentKey($collection);
+        $collection = $this->getCollectionName($collection);
 
         /** @noinspection SqlDialectInspection */
         /** @noinspection SqlNoDataSourceInspection */
         $query = "
-            INSERT INTO \"$collection\" (\"client_id\", \"key\", \"data\", \"created_at\")
-            VALUES (:client_id, :key, :data, :created_at)
+            INSERT INTO \"$collection\" (
+                \"client_id\",
+                \"event\",
+                \"code\",
+                \"data\", 
+                \"created_at\")
+            VALUES (:client_id, :event, :code, :data, :created_at)
+            ON CONFLICT (\"code\") DO UPDATE SET code=EXCLUDED.code RETURNING id
         ";
 
         $created_at = date("Y-m-d H:i:s");
         $client_id = $client->getId();
 
         $stmt = $pdo->prepare($query);
-        $stmt->bindParam('key', $key);
+        $stmt->bindParam('event', $event);
+        $stmt->bindParam('code', $code);
         $stmt->bindParam('data', $data);
         $stmt->bindParam('created_at', $created_at);
         $stmt->bindParam('client_id', $client_id);
         $stmt->execute();
 
-        return $key;
+        $id = $stmt->fetchColumn(0);
+
+        return (int) $id;
     }
 
-    public function getDocumentIdByKey(string $collection, ?string $key): ?int
+    public function getDocuments(string $collection, $from_id, $limit = null): array
     {
-        if (!$key || !preg_match('/^[a-z0-9_]+$/', $collection)) {
-            return null;
+        $from_id = (int) $from_id;
+        $collection = $this->getCollectionName($collection);
+        $limit = (int) $limit;
+
+        if ($limit <= 0 || $limit > $this->fetch_limit) {
+            $limit = $this->fetch_limit;
         }
 
         $pdo = $this->getPdo();
 
         /** @noinspection SqlNoDataSourceInspection */
         $query = "
-            SELECT \"id\" FROM \"$collection\"
-            WHERE \"key\" = :key
-        ";
-
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam('key', $key);
-        $stmt->execute();
-
-        $result = $stmt->fetchAll();
-
-        return count($result) > 0 ? $result[0]['id'] : null;
-    }
-
-    public function getDocuments(string $collection, int $from_id): array
-    {
-        if (!preg_match('/^[a-z0-9_]+$/', $collection)) {
-            return [];
-        }
-
-        $pdo = $this->getPdo();
-
-        /** @noinspection SqlNoDataSourceInspection */
-        $query = "
-                SELECT \"key\", \"data\" FROM \"$collection\"
+                SELECT \"id\", \"code\", \"event\", \"data\" FROM \"$collection\"
                 WHERE \"id\" > :from_id
-                LIMIT {$this->fetch_limit}
+                LIMIT {$limit}
             ";
 
         $stmt = $pdo->prepare($query);
@@ -131,7 +120,9 @@ class Database
 
         foreach ($result as $item) {
             $array[] = [
-                'key' => $item['key'],
+                'id' => $item['id'],
+                'code' => $item['code'],
+                'event' => $item['event'],
                 'data' => json_decode($item['data'], true),
             ];
         }
@@ -139,11 +130,10 @@ class Database
         return $array;
     }
 
-    public function countDocuments(string $collection, int $from_id): int
+    public function countDocuments(string $collection, $from_id): int
     {
-        if (!preg_match('/^[a-z0-9_]+$/', $collection)) {
-            return 0;
-        }
+        $from_id = (int) $from_id;
+        $collection = $this->getCollectionName($collection);
 
         $pdo = $this->getPdo();
 
@@ -165,11 +155,9 @@ class Database
 
     public function createTable(string $name): bool
     {
-        $pdo = $this->getPdo();
+        $name = $this->getCollectionName($name);
 
-        if (!preg_match('/^[a-z0-9_]+$/', $name)) {
-            return false;
-        }
+        $pdo = $this->getPdo();
 
         /** @noinspection SqlDialectInspection */
         /** @noinspection SqlNoDataSourceInspection */
@@ -177,40 +165,17 @@ class Database
             (
                 "id" bigserial NOT NULL,
                 "client_id" INTEGER NOT NULL,
-                "key" VARCHAR(255) NOT NULL,
-                "data" TEXT NOT NULL,
+                "code" VARCHAR(255) NOT NULL,
+                "event" VARCHAR(255) NOT NULL,
+                "data" JSONB NOT NULL,
                 "created_at" TIMESTAMP,
                 PRIMARY KEY ("id"),
-                CONSTRAINT "' . $name . '_key" UNIQUE ("key")
+                CONSTRAINT "' . $name . '_code" UNIQUE ("code")
             );'
         ;
 
         $stmt = $pdo->prepare($query);
 
         return $stmt->execute();
-    }
-
-    private function generateDocumentKey($collection)
-    {
-        $pdo = $this->getPdo();
-
-        do {
-            $key = Text::generateString(50);
-
-            /** @noinspection SqlNoDataSourceInspection */
-            $query = "
-                SELECT \"id\" FROM \"$collection\"
-                WHERE \"key\" = :key
-            ";
-
-            $stmt = $pdo->prepare($query);
-            $stmt->bindParam('key', $key);
-            $stmt->execute();
-
-            $result = $stmt->fetchAll();
-            $count = count($result);
-        } while ($count > 0);
-
-        return $key;
     }
 }

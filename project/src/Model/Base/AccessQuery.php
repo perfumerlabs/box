@@ -16,7 +16,7 @@ use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\PropelException;
 
 /**
- * Base class that represents a query for the '_access' table.
+ * Base class that represents a query for the 'box_access' table.
  *
  *
  *
@@ -184,7 +184,7 @@ abstract class AccessQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, collection_id, client_id, level, created_at FROM _access WHERE id = :p0';
+        $sql = 'SELECT id, collection_id, client_id, level, created_at FROM box_access WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -648,7 +648,7 @@ abstract class AccessQuery extends ModelCriteria
     }
 
     /**
-     * Deletes all rows from the _access table.
+     * Deletes all rows from the box_access table.
      *
      * @param ConnectionInterface $con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).
