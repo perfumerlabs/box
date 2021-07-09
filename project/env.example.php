@@ -1,0 +1,40 @@
+<?php
+
+return [
+    'propel' => [
+        'bin'           => 'vendor/bin/propel',
+        'project'       => 'box',
+        'database'      => 'pgsql',
+        'dsn'           => 'pgsql:host=db;port=5432;dbname=box',
+        'db_schema'     => 'public',
+        'db_user'       => 'postgres',
+        'db_password'   => 'postgres',
+        'platform'      => 'pgsql',
+        'config_dir'    => './',
+        'schema_dir'    => 'src/Resource/propel/schema',
+        'model_dir'     => 'src/Model',
+        'migration_dir' => 'src/Resource/propel/migration',
+        'migration_table' => 'box_propel_migration',
+    ],
+    'pg' => [
+        'real_host' => 'db',
+        'host' => 'db',
+        'port' => '5432',
+        'database' => 'box',
+        'schema' => 'public',
+        'user' => 'postgres',
+        'password' => 'postgres',
+    ],
+    'box' => [
+        'test' => true,
+        'admin_user' => '1',
+        'admin_secret' => '1',
+        'instances' => '',
+        'is_system' => false,
+        'fetch_limit' => 100,
+        'timezone' => 'Utc',
+        'queue_url' => 'http://queue',
+        'queue_worker' => 'common',
+        'queue_back_url' => 'http://box',
+    ],
+];

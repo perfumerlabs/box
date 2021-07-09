@@ -2,6 +2,7 @@
 
 namespace Box\Controller;
 
+use Box\Model\CollQuery;
 use Box\Service\Database;
 
 class DocumentsController extends LayoutController
@@ -17,10 +18,22 @@ class DocumentsController extends LayoutController
 
         $this->assertReadAccess($collection);
 
+        $collection = CollQuery::create()
+            ->filterByName($collection)
+            ->findOne();
+
+        if (!$collection) {
+            $this->forward('error', 'badRequest', ["Collection was not found"]);
+        }
+
+        if ($collection->isDisabled()) {
+            $this->forward('error', 'badRequest', ["Collection is disabled"]);
+        }
+
         /** @var Database $database */
         $database = $this->s('database');
 
-        $documents = $database->getDocuments($collection, $id, $limit);
+        $documents = $database->getDocuments($collection->getName(), $id, $limit);
 
         $this->setContent([
             'documents' => $documents

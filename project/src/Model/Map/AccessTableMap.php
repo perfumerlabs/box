@@ -58,7 +58,7 @@ class AccessTableMap extends TableMap
     /**
      * The total number of columns
      */
-    const NUM_COLUMNS = 5;
+    const NUM_COLUMNS = 6;
 
     /**
      * The number of lazy-loaded columns
@@ -68,7 +68,7 @@ class AccessTableMap extends TableMap
     /**
      * The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS)
      */
-    const NUM_HYDRATE_COLUMNS = 5;
+    const NUM_HYDRATE_COLUMNS = 6;
 
     /**
      * the column name for the id field
@@ -96,6 +96,11 @@ class AccessTableMap extends TableMap
     const COL_CREATED_AT = 'box_access.created_at';
 
     /**
+     * the column name for the updated_at field
+     */
+    const COL_UPDATED_AT = 'box_access.updated_at';
+
+    /**
      * The default string format for model objects of the related table
      */
     const DEFAULT_STRING_FORMAT = 'YAML';
@@ -111,11 +116,11 @@ class AccessTableMap extends TableMap
      * e.g. self::$fieldNames[self::TYPE_PHPNAME][0] = 'Id'
      */
     protected static $fieldNames = array (
-        self::TYPE_PHPNAME       => array('Id', 'CollectionId', 'ClientId', 'Level', 'CreatedAt', ),
-        self::TYPE_CAMELNAME     => array('id', 'collectionId', 'clientId', 'level', 'createdAt', ),
-        self::TYPE_COLNAME       => array(AccessTableMap::COL_ID, AccessTableMap::COL_COLLECTION_ID, AccessTableMap::COL_CLIENT_ID, AccessTableMap::COL_LEVEL, AccessTableMap::COL_CREATED_AT, ),
-        self::TYPE_FIELDNAME     => array('id', 'collection_id', 'client_id', 'level', 'created_at', ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, )
+        self::TYPE_PHPNAME       => array('Id', 'CollectionId', 'ClientId', 'Level', 'CreatedAt', 'UpdatedAt', ),
+        self::TYPE_CAMELNAME     => array('id', 'collectionId', 'clientId', 'level', 'createdAt', 'updatedAt', ),
+        self::TYPE_COLNAME       => array(AccessTableMap::COL_ID, AccessTableMap::COL_COLLECTION_ID, AccessTableMap::COL_CLIENT_ID, AccessTableMap::COL_LEVEL, AccessTableMap::COL_CREATED_AT, AccessTableMap::COL_UPDATED_AT, ),
+        self::TYPE_FIELDNAME     => array('id', 'collection_id', 'client_id', 'level', 'created_at', 'updated_at', ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, )
     );
 
     /**
@@ -125,12 +130,69 @@ class AccessTableMap extends TableMap
      * e.g. self::$fieldKeys[self::TYPE_PHPNAME]['Id'] = 0
      */
     protected static $fieldKeys = array (
-        self::TYPE_PHPNAME       => array('Id' => 0, 'CollectionId' => 1, 'ClientId' => 2, 'Level' => 3, 'CreatedAt' => 4, ),
-        self::TYPE_CAMELNAME     => array('id' => 0, 'collectionId' => 1, 'clientId' => 2, 'level' => 3, 'createdAt' => 4, ),
-        self::TYPE_COLNAME       => array(AccessTableMap::COL_ID => 0, AccessTableMap::COL_COLLECTION_ID => 1, AccessTableMap::COL_CLIENT_ID => 2, AccessTableMap::COL_LEVEL => 3, AccessTableMap::COL_CREATED_AT => 4, ),
-        self::TYPE_FIELDNAME     => array('id' => 0, 'collection_id' => 1, 'client_id' => 2, 'level' => 3, 'created_at' => 4, ),
-        self::TYPE_NUM           => array(0, 1, 2, 3, 4, )
+        self::TYPE_PHPNAME       => array('Id' => 0, 'CollectionId' => 1, 'ClientId' => 2, 'Level' => 3, 'CreatedAt' => 4, 'UpdatedAt' => 5, ),
+        self::TYPE_CAMELNAME     => array('id' => 0, 'collectionId' => 1, 'clientId' => 2, 'level' => 3, 'createdAt' => 4, 'updatedAt' => 5, ),
+        self::TYPE_COLNAME       => array(AccessTableMap::COL_ID => 0, AccessTableMap::COL_COLLECTION_ID => 1, AccessTableMap::COL_CLIENT_ID => 2, AccessTableMap::COL_LEVEL => 3, AccessTableMap::COL_CREATED_AT => 4, AccessTableMap::COL_UPDATED_AT => 5, ),
+        self::TYPE_FIELDNAME     => array('id' => 0, 'collection_id' => 1, 'client_id' => 2, 'level' => 3, 'created_at' => 4, 'updated_at' => 5, ),
+        self::TYPE_NUM           => array(0, 1, 2, 3, 4, 5, )
     );
+
+    /**
+     * Holds a list of column names and their normalized version.
+     *
+     * @var string[]
+     */
+    protected $normalizedColumnNameMap = [
+
+        'Id' => 'ID',
+        'Access.Id' => 'ID',
+        'id' => 'ID',
+        'access.id' => 'ID',
+        'AccessTableMap::COL_ID' => 'ID',
+        'COL_ID' => 'ID',
+        'id' => 'ID',
+        'box_access.id' => 'ID',
+        'CollectionId' => 'COLLECTION_ID',
+        'Access.CollectionId' => 'COLLECTION_ID',
+        'collectionId' => 'COLLECTION_ID',
+        'access.collectionId' => 'COLLECTION_ID',
+        'AccessTableMap::COL_COLLECTION_ID' => 'COLLECTION_ID',
+        'COL_COLLECTION_ID' => 'COLLECTION_ID',
+        'collection_id' => 'COLLECTION_ID',
+        'box_access.collection_id' => 'COLLECTION_ID',
+        'ClientId' => 'CLIENT_ID',
+        'Access.ClientId' => 'CLIENT_ID',
+        'clientId' => 'CLIENT_ID',
+        'access.clientId' => 'CLIENT_ID',
+        'AccessTableMap::COL_CLIENT_ID' => 'CLIENT_ID',
+        'COL_CLIENT_ID' => 'CLIENT_ID',
+        'client_id' => 'CLIENT_ID',
+        'box_access.client_id' => 'CLIENT_ID',
+        'Level' => 'LEVEL',
+        'Access.Level' => 'LEVEL',
+        'level' => 'LEVEL',
+        'access.level' => 'LEVEL',
+        'AccessTableMap::COL_LEVEL' => 'LEVEL',
+        'COL_LEVEL' => 'LEVEL',
+        'level' => 'LEVEL',
+        'box_access.level' => 'LEVEL',
+        'CreatedAt' => 'CREATED_AT',
+        'Access.CreatedAt' => 'CREATED_AT',
+        'createdAt' => 'CREATED_AT',
+        'access.createdAt' => 'CREATED_AT',
+        'AccessTableMap::COL_CREATED_AT' => 'CREATED_AT',
+        'COL_CREATED_AT' => 'CREATED_AT',
+        'created_at' => 'CREATED_AT',
+        'box_access.created_at' => 'CREATED_AT',
+        'UpdatedAt' => 'UPDATED_AT',
+        'Access.UpdatedAt' => 'UPDATED_AT',
+        'updatedAt' => 'UPDATED_AT',
+        'access.updatedAt' => 'UPDATED_AT',
+        'AccessTableMap::COL_UPDATED_AT' => 'UPDATED_AT',
+        'COL_UPDATED_AT' => 'UPDATED_AT',
+        'updated_at' => 'UPDATED_AT',
+        'box_access.updated_at' => 'UPDATED_AT',
+    ];
 
     /** The enumerated values for this table */
     protected static $enumValueSets = array(
@@ -188,6 +250,7 @@ class AccessTableMap extends TableMap
   1 => 'write',
 ));
         $this->addColumn('created_at', 'CreatedAt', 'TIMESTAMP', false, null, null);
+        $this->addColumn('updated_at', 'UpdatedAt', 'TIMESTAMP', false, null, null);
     } // initialize()
 
     /**
@@ -220,7 +283,7 @@ class AccessTableMap extends TableMap
     public function getBehaviors()
     {
         return array(
-            'timestampable' => array('create_column' => 'created_at', 'update_column' => 'updated_at', 'disable_created_at' => 'false', 'disable_updated_at' => 'true', ),
+            'timestampable' => array('create_column' => 'created_at', 'update_column' => 'updated_at', 'disable_created_at' => 'false', 'disable_updated_at' => 'false', ),
         );
     } // getBehaviors()
 
@@ -370,12 +433,44 @@ class AccessTableMap extends TableMap
             $criteria->addSelectColumn(AccessTableMap::COL_CLIENT_ID);
             $criteria->addSelectColumn(AccessTableMap::COL_LEVEL);
             $criteria->addSelectColumn(AccessTableMap::COL_CREATED_AT);
+            $criteria->addSelectColumn(AccessTableMap::COL_UPDATED_AT);
         } else {
             $criteria->addSelectColumn($alias . '.id');
             $criteria->addSelectColumn($alias . '.collection_id');
             $criteria->addSelectColumn($alias . '.client_id');
             $criteria->addSelectColumn($alias . '.level');
             $criteria->addSelectColumn($alias . '.created_at');
+            $criteria->addSelectColumn($alias . '.updated_at');
+        }
+    }
+
+    /**
+     * Remove all the columns needed to create a new object.
+     *
+     * Note: any columns that were marked with lazyLoad="true" in the
+     * XML schema will not be removed as they are only loaded on demand.
+     *
+     * @param Criteria $criteria object containing the columns to remove.
+     * @param string   $alias    optional table alias
+     * @throws PropelException Any exceptions caught during processing will be
+     *                         rethrown wrapped into a PropelException.
+     */
+    public static function removeSelectColumns(Criteria $criteria, $alias = null)
+    {
+        if (null === $alias) {
+            $criteria->removeSelectColumn(AccessTableMap::COL_ID);
+            $criteria->removeSelectColumn(AccessTableMap::COL_COLLECTION_ID);
+            $criteria->removeSelectColumn(AccessTableMap::COL_CLIENT_ID);
+            $criteria->removeSelectColumn(AccessTableMap::COL_LEVEL);
+            $criteria->removeSelectColumn(AccessTableMap::COL_CREATED_AT);
+            $criteria->removeSelectColumn(AccessTableMap::COL_UPDATED_AT);
+        } else {
+            $criteria->removeSelectColumn($alias . '.id');
+            $criteria->removeSelectColumn($alias . '.collection_id');
+            $criteria->removeSelectColumn($alias . '.client_id');
+            $criteria->removeSelectColumn($alias . '.level');
+            $criteria->removeSelectColumn($alias . '.created_at');
+            $criteria->removeSelectColumn($alias . '.updated_at');
         }
     }
 

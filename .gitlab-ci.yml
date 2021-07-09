@@ -1,0 +1,48 @@
+image: docker:stable
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - test
+  - notify_success
+  - notify_error
+
+build:
+  stage: build
+  before_script:
+    - echo "$DOCKERPASSWORD" | docker login $DOCKERREGISTRY --username $DOCKERUSER --password-stdin
+  script:
+    - docker build -t git.perfumerlabs.com:5050/atameken/esb .
+    - docker push git.perfumerlabs.com:5050/atameken/esb
+  only:
+    - master
+
+test:
+  stage: test
+  image: docker/compose
+  script:
+    - docker-compose up -d --remove-orphans
+    - docker-compose exec -T box bash -c "cd /opt/box && sleep 5 && sudo -u box /usr/bin/php cli box init --database=box --host=db --username=postgres --password=postgres"
+    - docker-compose exec -T box bash -c "cd /opt/box && sudo -u box /usr/bin/php cli framework propel/migrate"
+    - docker-compose exec -T box bash -c "cd /opt/box && sleep 5 && bash test_codeception"
+  after_script:
+    - docker-compose down --remove-orphans
+  only:
+    - master
+
+notify_success:
+  stage: notify_success
+  script:
+    - apk --update add curl
+    - /bin/sh ./ci_notify.sh ✅
+  only:
+    - master
+
+notify_error:
+  stage: notify_error
+  script:
+    - apk --update add curl
+    - /bin/sh ./ci_notify.sh ❌
+  when: on_failure

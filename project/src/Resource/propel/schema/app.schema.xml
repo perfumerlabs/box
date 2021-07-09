@@ -1,54 +1,158 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <database name="box" defaultIdMethod="native" namespace="Box\Model">
+    <!-- Client system of Box -->
     <table name="box_client" phpName="Client">
         <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
-        <column name="name" type="varchar" size="255"/>
-        <column name="secret" type="varchar" size="255"/>
+        <column name="name" type="varchar" size="255"/> <!-- Client system name -->
+        <column name="description" type="varchar" size="255"/> <!-- Short description -->
+        <column name="secret" type="varchar" size="255"/> <!-- Secret token for authorizing in requests -->
         <column name="is_admin" type="boolean" defaultValue="false" required="true"/>
+        <column name="is_disabled" type="boolean" defaultValue="false" required="true"/>
+        <!--
+           Is client an admin. Admins can manage collections
+        -->
+        <unique>
+            <unique-column name="name"/>
+        </unique>
         <unique>
             <unique-column name="secret"/>
         </unique>
-        <behavior name="timestampable">
-            <parameter name="disable_updated_at" value="true" />
-        </behavior>
+        <behavior name="timestampable"/>
     </table>
 
+    <!-- Table describes access of clients to collections -->
     <table name="box_access" phpName="Access">
         <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
-        <column name="collection_id" type="integer" required="true"/>
-        <column name="client_id" type="integer" required="true"/>
+        <column name="collection_id" type="integer" required="true"/> <!-- collection -->
+        <column name="client_id" type="integer" required="true"/> <!-- client -->
         <column name="level" type="enum" valueSet="read,write" required="true"/>
+        <!--
+            Level of access:
+            write - client can write to and read from collection
+            read - client can only read from collection
+        -->
         <foreign-key foreignTable="box_client" phpName="Client">
             <reference local="client_id" foreign="id"/>
         </foreign-key>
         <foreign-key foreignTable="box_collection" phpName="Collection">
             <reference local="collection_id" foreign="id"/>
         </foreign-key>
-        <behavior name="timestampable">
-            <parameter name="disable_updated_at" value="true" />
-        </behavior>
+        <behavior name="timestampable"/>
     </table>
 
+    <!-- Table describes collections -->
     <table name="box_collection" phpName="Coll">
         <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
-        <column name="name" type="varchar" size="255" required="true"/>
+        <column name="name" type="varchar" size="255" required="true"/> <!-- collection name -->
+        <column name="description" type="varchar" size="255"/> <!-- Short description -->
+        <column name="type" type="enum" valueSet="storage,sync,async" defaultValue="storage" required="true"/>
+        <!--
+            Collection type:
+            storage - simple storage function: one client writes to collection, other client reads this data from collection
+            sync - when client write to collection, Box sends request to "handler" and returns its response to client
+            async - when client write to collection, Box saves request, then Box sends request to "handler" and returns its response to client webhook
+        -->
+        <column name="handler" type="varchar" size="255"/>
+        <!-- URL handler of remote service which processes sync and async requests -->
+        <column name="is_disabled" type="boolean" defaultValue="false" required="true"/>
         <unique>
             <unique-column name="name"/>
         </unique>
-        <behavior name="timestampable">
-            <parameter name="disable_updated_at" value="true" />
-        </behavior>
+        <behavior name="timestampable"/>
     </table>
 
+    <!-- all document push log -->
+    <table name="box_document_log" phpName="DocumentLog">
+        <column name="id" type="bigint" required="true" primaryKey="true" autoIncrement="true"/>
+        <column name="collection_id" type="integer" required="true"/>
+        <column name="client_id" type="integer" required="true"/>
+        <column name="document_id" type="bigint" required="true"/>
+        <column name="uuid" type="varchar" size="255" required="true"/>
+        <column name="event" type="varchar" size="255" required="true"/>
+        <column name="provider_requested_at" type="timestamp"/> <!-- Last time provider is requested for sync or async collections -->
+        <column name="provider_respond_at" type="timestamp"/> <!-- Time when response from provider has been received -->
+        <column name="webhook_requested_at" type="timestamp"/> <!-- Last time webhook is requested -->
+        <column name="status" type="enum" valueSet="
+            waiting,
+            success,
+            provider_failed,
+            webhook_failed,
+            unexpected,
+            document_not_found,
+            webhook_no_response
+        " defaultValue="waiting" required="true"/>
+        <!--
+            Status of document storage:
+            waiting - document is just created and waiting for processing
+            success - document fully saved and processed (for sync or async)
+            provider_failed - provider not accessible for async or sync
+            webhook_failed - webhook did not response for async after multiple tries
+            unexpected - when unexpected scenario happened
+            document_not_found - document was not found
+            webhook_no_response - webhook does not respond (will try later)
+        -->
+        <foreign-key foreignTable="box_client" phpName="Client">
+            <reference local="client_id" foreign="id"/>
+        </foreign-key>
+        <foreign-key foreignTable="box_collection" phpName="Collection">
+            <reference local="collection_id" foreign="id"/>
+        </foreign-key>
+        <behavior name="timestampable"/>
+        <index>
+            <index-column name="collection_id"/>
+        </index>
+        <index>
+            <index-column name="client_id"/>
+        </index>
+        <index>
+            <index-column name="uuid"/>
+        </index>
+        <index>
+            <index-column name="event"/>
+        </index>
+        <index>
+            <index-column name="provider_requested_at"/>
+        </index>
+        <index>
+            <index-column name="webhook_requested_at"/>
+        </index>
+    </table>
+
+    <!-- provider requests log in sync or async -->
+    <table name="box_request_log" phpName="RequestLog">
+        <column name="id" type="bigint" required="true" primaryKey="true" autoIncrement="true"/>
+        <column name="document_log_id" type="bigint" required="true"/>
+        <column name="type" type="enum" valueSet="provider,webhook" required="true"/>
+        <column name="request_url" type="varchar" size="255"/>
+        <column name="request_method" type="varchar" size="255"/>
+        <column name="request_headers" type="longvarchar"/>
+        <column name="request_body" type="longvarchar"/>
+        <column name="response_status_code" type="integer"/>
+        <column name="response_headers" type="longvarchar"/>
+        <column name="response_body" type="longvarchar"/>
+        <column name="response_error" type="longvarchar"/>
+        <foreign-key foreignTable="box_document_log" phpName="DocumentLog" ondelete="cascade">
+            <reference local="document_log_id" foreign="id"/>
+        </foreign-key>
+        <behavior name="timestampable"/>
+        <index>
+            <index-column name="document_log_id"/>
+        </index>
+    </table>
+
+    <!-- Example of table structure, which is created for a collection -->
 <!--    <table name="sample" phpName="Sample">-->
 <!--        <column name="id" type="bigint" required="true" primaryKey="true" autoIncrement="true"/>-->
-<!--        <column name="key" type="varchar" size="255" required="true"/>-->
+<!--        <column name="uuid" type="varchar" size="255" required="true"/>-->
+<!--        <column name="event" type="varchar" size="255" required="true"/>-->
 <!--        <column name="data" type="longvarchar" required="true"/>-->
+<!--        <column name="webhook" type="varchar" size="255"/>-->
 <!--        <unique>-->
-<!--            <unique-column name="key"/>-->
+<!--            <unique-column name="uuid"/>-->
 <!--        </unique>-->
-<!--        <behavior name="timestampable">-->
-<!--            <parameter name="disable_updated_at" value="true" />-->
-<!--        </behavior>-->
+<!--        <index>-->
+<!--            <index-column name="event"/>-->
+<!--        </index>-->
+<!--        <behavior name="timestampable"/>-->
 <!--    </table>-->
 </database>

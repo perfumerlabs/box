@@ -3,6 +3,7 @@
 namespace Box\Model;
 
 use Box\Model\Base\Coll as BaseColl;
+use Box\Model\Map\CollTableMap;
 
 /**
  * Skeleton subclass for representing a row from the '_collection' table.
@@ -16,5 +17,23 @@ use Box\Model\Base\Coll as BaseColl;
  */
 class Coll extends BaseColl
 {
+    public function isStorage(): bool
+    {
+        return $this->getType() === CollTableMap::COL_TYPE_STORAGE;
+    }
 
+    public function isSync(): bool
+    {
+        return $this->getType() === CollTableMap::COL_TYPE_SYNC;
+    }
+
+    public function isAsync(): bool
+    {
+        return $this->getType() === CollTableMap::COL_TYPE_ASYNC;
+    }
+
+    public function isProtected(): bool
+    {
+        return in_array($this->getName(), ['system']);
+    }
 }

@@ -3,11 +3,12 @@
 namespace Box\Service;
 
 use Box\Model\Client;
-use Envms\FluentPDO\Query;
 
 class Database
 {
     private $db;
+
+    private $schema;
 
     private $host;
 
@@ -23,6 +24,7 @@ class Database
 
     public function __construct(
         $db,
+        $schema,
         $host,
         $port,
         $username,
@@ -31,6 +33,7 @@ class Database
     )
     {
         $this->db = $db;
+        $this->schema = $schema;
         $this->host = $host;
         $this->port = $port;
         $this->username = $username;
@@ -42,14 +45,17 @@ class Database
     {
         if (!$this->pdo) {
             $this->pdo = new \PDO("pgsql:host={$this->host};port={$this->port};dbname={$this->db}", $this->username, $this->password);
+
+            if (
+                $this->schema !== 'public' &&
+                $this->schema !== 'PG_SCHEMA' &&
+                $this->schema
+            ) {
+                $this->pdo->exec('SET search_path TO ' . $this->schema);
+            }
         }
 
         return $this->pdo;
-    }
-
-    public function getQuery()
-    {
-        return new Query($this->pdo);
     }
 
     public function getCollectionName($collection)
@@ -57,7 +63,7 @@ class Database
         return 'box_data_' . preg_replace('/[^a-zA-Z0-9_]/', '', $collection);
     }
 
-    public function insertDocument(Client $client, string $collection, string $event, string $code, $data): ?int
+    public function insertDocument(Client $client, string $collection, string $event, string $uuid, $data, ?string $webhook): ?int
     {
         $pdo = $this->getPdo();
         $collection = $this->getCollectionName($collection);
@@ -68,21 +74,27 @@ class Database
             INSERT INTO \"$collection\" (
                 \"client_id\",
                 \"event\",
-                \"code\",
+                \"uuid\",
                 \"data\", 
-                \"created_at\")
-            VALUES (:client_id, :event, :code, :data, :created_at)
-            ON CONFLICT (\"code\") DO UPDATE SET code=EXCLUDED.code RETURNING id
+                \"webhook\", 
+                \"created_at\", 
+                \"updated_at\"
+            )
+            VALUES (:client_id, :event, :uuid, :data, :webhook, :created_at, :updated_at)
+            ON CONFLICT (\"uuid\") DO UPDATE SET uuid=EXCLUDED.uuid RETURNING id
         ";
 
         $created_at = date("Y-m-d H:i:s");
+        $updated_at = date("Y-m-d H:i:s");
         $client_id = $client->getId();
 
         $stmt = $pdo->prepare($query);
         $stmt->bindParam('event', $event);
-        $stmt->bindParam('code', $code);
+        $stmt->bindParam('uuid', $uuid);
         $stmt->bindParam('data', $data);
+        $stmt->bindParam('webhook', $webhook);
         $stmt->bindParam('created_at', $created_at);
+        $stmt->bindParam('updated_at', $updated_at);
         $stmt->bindParam('client_id', $client_id);
         $stmt->execute();
 
@@ -91,10 +103,123 @@ class Database
         return (int) $id;
     }
 
+    public function updateDocumentWithResponse($collection, $id, $response_status_code, $response_body)
+    {
+        $pdo = $this->getPdo();
+        $collection = $this->getCollectionName($collection);
+
+        /** @noinspection SqlDialectInspection */
+        /** @noinspection SqlNoDataSourceInspection */
+        $query = "
+            UPDATE \"$collection\" SET
+                \"response_status_code\" = :response_status_code,
+                \"response_body\" = :response_body
+            WHERE \"id\" = :id
+        ";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam('id', $id);
+        $stmt->bindParam('response_status_code', $response_status_code);
+        $stmt->bindParam('response_body', $response_body);
+        $stmt->execute();
+    }
+
+    public function getDocumentByUuid(string $collection, $uuid): ?array
+    {
+        $collection_name = $this->getCollectionName($collection);
+
+        $pdo = $this->getPdo();
+
+        /** @noinspection SqlNoDataSourceInspection */
+        $query = "
+                SELECT 
+                       \"id\", 
+                       \"uuid\", 
+                       \"event\", 
+                       \"data\", 
+                       \"webhook\", 
+                       \"response_status_code\", 
+                       \"response_body\" 
+                FROM \"$collection_name\"
+                WHERE \"uuid\" = :uuid
+            ";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam('uuid', $uuid);
+        $stmt->execute();
+
+        $result = $stmt->fetchAll();
+
+        $array = null;
+
+        if ($result) {
+            $item = $result[0];
+
+            $array = [
+                'id' => $item['id'],
+                'collection' => $collection,
+                'uuid' => $item['uuid'],
+                'event' => $item['event'],
+                'webhook' => $item['webhook'],
+                'response_status_code' => $item['response_status_code'],
+                'response_body' => $item['response_body'],
+                'data' => json_decode($item['data'], true),
+            ];
+        }
+
+        return $array;
+    }
+
+    public function getDocument(string $collection, $id): ?array
+    {
+        $collection_name = $this->getCollectionName($collection);
+
+        $pdo = $this->getPdo();
+
+        /** @noinspection SqlNoDataSourceInspection */
+        $query = "
+                SELECT 
+                       \"id\", 
+                       \"uuid\", 
+                       \"event\", 
+                       \"data\", 
+                       \"webhook\", 
+                       \"response_status_code\", 
+                       \"response_body\" 
+                FROM \"$collection_name\"
+                WHERE \"id\" = :id
+            ";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam('id', $id);
+        $stmt->execute();
+
+        $result = $stmt->fetchAll();
+
+        $array = null;
+
+        if ($result) {
+            $item = $result[0];
+
+            $array = [
+                'id' => $item['id'],
+                'collection' => $collection,
+                'uuid' => $item['uuid'],
+                'event' => $item['event'],
+                'webhook' => $item['webhook'],
+                'response_status_code' => $item['response_status_code'],
+                'response_body' => $item['response_body'],
+                'data' => json_decode($item['data'], true),
+            ];
+        }
+
+        return $array;
+    }
+
     public function getDocuments(string $collection, $from_id, $limit = null): array
     {
         $from_id = (int) $from_id;
-        $collection = $this->getCollectionName($collection);
+        $collection_name = $this->getCollectionName($collection);
         $limit = (int) $limit;
 
         if ($limit <= 0 || $limit > $this->fetch_limit) {
@@ -105,7 +230,7 @@ class Database
 
         /** @noinspection SqlNoDataSourceInspection */
         $query = "
-                SELECT \"id\", \"code\", \"event\", \"data\" FROM \"$collection\"
+                SELECT \"id\", \"uuid\", \"event\", \"data\", \"webhook\" FROM \"$collection_name\"
                 WHERE \"id\" > :from_id
                 LIMIT {$limit}
             ";
@@ -121,8 +246,10 @@ class Database
         foreach ($result as $item) {
             $array[] = [
                 'id' => $item['id'],
-                'code' => $item['code'],
+                'collection' => $collection,
+                'uuid' => $item['uuid'],
                 'event' => $item['event'],
+                'webhook' => $item['webhook'],
                 'data' => json_decode($item['data'], true),
             ];
         }
@@ -161,16 +288,20 @@ class Database
 
         /** @noinspection SqlDialectInspection */
         /** @noinspection SqlNoDataSourceInspection */
-        $query = 'CREATE TABLE IF NOT EXISTS "public"."' . $name . '"
+        $query = 'CREATE TABLE IF NOT EXISTS "' . $name . '"
             (
                 "id" bigserial NOT NULL,
                 "client_id" INTEGER NOT NULL,
-                "code" VARCHAR(255) NOT NULL,
+                "uuid" VARCHAR(255) NOT NULL,
                 "event" VARCHAR(255) NOT NULL,
-                "data" JSONB NOT NULL,
+                "data" JSONB,
+                "response_status_code" INTEGER,
+                "response_body" TEXT,
+                "webhook" VARCHAR(255),
                 "created_at" TIMESTAMP,
+                "updated_at" TIMESTAMP,
                 PRIMARY KEY ("id"),
-                CONSTRAINT "' . $name . '_code" UNIQUE ("code")
+                CONSTRAINT "' . $name . '_uuid" UNIQUE ("uuid")
             );'
         ;
 

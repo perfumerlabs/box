@@ -4,6 +4,7 @@ namespace Project;
 
 use Box\Module\CommandModule;
 use Box\Module\ControllerModule;
+use Perfumer\Component\Container\Storage\DatabaseStorage;
 use Perfumer\Package\Framework\Module\ConsoleModule;
 use Perfumer\Package\Framework\Module\HttpModule;
 
@@ -18,6 +19,8 @@ class Application extends \Perfumer\Framework\Application\Application
         $this->addDefinitions(__DIR__ . '/../src/Resource/config/services_http.php', 'http');
         $this->addDefinitions(__DIR__ . '/../src/Resource/config/services_cli.php',  'cli');
         $this->addResources(__DIR__ . '/../src/Resource/config/resources_shared.php');
+
+        $this->addResources(__DIR__ . '/../env.php');
 
         $this->addModule(new HttpModule(),       'http');
         $this->addModule(new ControllerModule(), 'http');
@@ -35,5 +38,7 @@ class Application extends \Perfumer\Framework\Application\Application
     protected function after(): void
     {
         $this->container->get('propel.service_container');
+
+        $this->container->registerStorage('database', new DatabaseStorage());
     }
 }

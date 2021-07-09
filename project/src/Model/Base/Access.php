@@ -5,6 +5,7 @@ namespace Box\Model\Base;
 use \DateTime;
 use \Exception;
 use \PDO;
+use Box\Model\Access as ChildAccess;
 use Box\Model\AccessQuery as ChildAccessQuery;
 use Box\Model\Client as ChildClient;
 use Box\Model\ClientQuery as ChildClientQuery;
@@ -96,9 +97,16 @@ abstract class Access implements ActiveRecordInterface
     /**
      * The value for the created_at field.
      *
-     * @var        DateTime
+     * @var        DateTime|null
      */
     protected $created_at;
+
+    /**
+     * The value for the updated_at field.
+     *
+     * @var        DateTime|null
+     */
+    protected $updated_at;
 
     /**
      * @var        ChildClient
@@ -396,19 +404,39 @@ abstract class Access implements ActiveRecordInterface
      * Get the [optionally formatted] temporal [created_at] column value.
      *
      *
-     * @param      string|null $format The date/time format string (either date()-style or strftime()-style).
-     *                            If format is NULL, then the raw DateTime object will be returned.
+     * @param string|null $format The date/time format string (either date()-style or strftime()-style).
+     *   If format is NULL, then the raw DateTime object will be returned.
      *
-     * @return string|DateTime Formatted date/time value as string or DateTime object (if format is NULL), NULL if column is NULL
+     * @return string|DateTime|null Formatted date/time value as string or DateTime object (if format is NULL), NULL if column is NULL
      *
      * @throws PropelException - if unable to parse/validate the date/time value.
      */
-    public function getCreatedAt($format = NULL)
+    public function getCreatedAt($format = null)
     {
         if ($format === null) {
             return $this->created_at;
         } else {
             return $this->created_at instanceof \DateTimeInterface ? $this->created_at->format($format) : null;
+        }
+    }
+
+    /**
+     * Get the [optionally formatted] temporal [updated_at] column value.
+     *
+     *
+     * @param string|null $format The date/time format string (either date()-style or strftime()-style).
+     *   If format is NULL, then the raw DateTime object will be returned.
+     *
+     * @return string|DateTime|null Formatted date/time value as string or DateTime object (if format is NULL), NULL if column is NULL
+     *
+     * @throws PropelException - if unable to parse/validate the date/time value.
+     */
+    public function getUpdatedAt($format = null)
+    {
+        if ($format === null) {
+            return $this->updated_at;
+        } else {
+            return $this->updated_at instanceof \DateTimeInterface ? $this->updated_at->format($format) : null;
         }
     }
 
@@ -508,7 +536,7 @@ abstract class Access implements ActiveRecordInterface
     /**
      * Sets the value of [created_at] column to a normalized version of the date/time value specified.
      *
-     * @param  mixed $v string, integer (timestamp), or \DateTimeInterface value.
+     * @param  string|integer|\DateTimeInterface|null $v string, integer (timestamp), or \DateTimeInterface value.
      *               Empty strings are treated as NULL.
      * @return $this|\Box\Model\Access The current object (for fluent API support)
      */
@@ -524,6 +552,26 @@ abstract class Access implements ActiveRecordInterface
 
         return $this;
     } // setCreatedAt()
+
+    /**
+     * Sets the value of [updated_at] column to a normalized version of the date/time value specified.
+     *
+     * @param  string|integer|\DateTimeInterface|null $v string, integer (timestamp), or \DateTimeInterface value.
+     *               Empty strings are treated as NULL.
+     * @return $this|\Box\Model\Access The current object (for fluent API support)
+     */
+    public function setUpdatedAt($v)
+    {
+        $dt = PropelDateTime::newInstance($v, null, 'DateTime');
+        if ($this->updated_at !== null || $dt !== null) {
+            if ($this->updated_at === null || $dt === null || $dt->format("Y-m-d H:i:s.u") !== $this->updated_at->format("Y-m-d H:i:s.u")) {
+                $this->updated_at = $dt === null ? null : clone $dt;
+                $this->modifiedColumns[AccessTableMap::COL_UPDATED_AT] = true;
+            }
+        } // if either are not null
+
+        return $this;
+    } // setUpdatedAt()
 
     /**
      * Indicates whether the columns in this object are only set to default values.
@@ -575,6 +623,9 @@ abstract class Access implements ActiveRecordInterface
 
             $col = $row[TableMap::TYPE_NUM == $indexType ? 4 + $startcol : AccessTableMap::translateFieldName('CreatedAt', TableMap::TYPE_PHPNAME, $indexType)];
             $this->created_at = (null !== $col) ? PropelDateTime::newInstance($col, null, 'DateTime') : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 5 + $startcol : AccessTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->updated_at = (null !== $col) ? PropelDateTime::newInstance($col, null, 'DateTime') : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -583,7 +634,7 @@ abstract class Access implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 5; // 5 = AccessTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 6; // 6 = AccessTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\Box\\Model\\Access'), 0, $e);
@@ -724,8 +775,15 @@ abstract class Access implements ActiveRecordInterface
                 if (!$this->isColumnModified(AccessTableMap::COL_CREATED_AT)) {
                     $this->setCreatedAt($highPrecision);
                 }
+                if (!$this->isColumnModified(AccessTableMap::COL_UPDATED_AT)) {
+                    $this->setUpdatedAt($highPrecision);
+                }
             } else {
                 $ret = $ret && $this->preUpdate($con);
+                // timestampable behavior
+                if ($this->isModified() && !$this->isColumnModified(AccessTableMap::COL_UPDATED_AT)) {
+                    $this->setUpdatedAt(\Propel\Runtime\Util\PropelDateTime::createHighPrecision());
+                }
             }
             if ($ret) {
                 $affectedRows = $this->doSave($con);
@@ -841,6 +899,9 @@ abstract class Access implements ActiveRecordInterface
         if ($this->isColumnModified(AccessTableMap::COL_CREATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'created_at';
         }
+        if ($this->isColumnModified(AccessTableMap::COL_UPDATED_AT)) {
+            $modifiedColumns[':p' . $index++]  = 'updated_at';
+        }
 
         $sql = sprintf(
             'INSERT INTO box_access (%s) VALUES (%s)',
@@ -866,6 +927,9 @@ abstract class Access implements ActiveRecordInterface
                         break;
                     case 'created_at':
                         $stmt->bindValue($identifier, $this->created_at ? $this->created_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
+                        break;
+                    case 'updated_at':
+                        $stmt->bindValue($identifier, $this->updated_at ? $this->updated_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
                         break;
                 }
             }
@@ -937,6 +1001,9 @@ abstract class Access implements ActiveRecordInterface
             case 4:
                 return $this->getCreatedAt();
                 break;
+            case 5:
+                return $this->getUpdatedAt();
+                break;
             default:
                 return null;
                 break;
@@ -972,9 +1039,14 @@ abstract class Access implements ActiveRecordInterface
             $keys[2] => $this->getClientId(),
             $keys[3] => $this->getLevel(),
             $keys[4] => $this->getCreatedAt(),
+            $keys[5] => $this->getUpdatedAt(),
         );
         if ($result[$keys[4]] instanceof \DateTimeInterface) {
-            $result[$keys[4]] = $result[$keys[4]]->format('c');
+            $result[$keys[4]] = $result[$keys[4]]->format('Y-m-d H:i:s.u');
+        }
+
+        if ($result[$keys[5]] instanceof \DateTimeInterface) {
+            $result[$keys[5]] = $result[$keys[5]]->format('Y-m-d H:i:s.u');
         }
 
         $virtualColumns = $this->virtualColumns;
@@ -1066,6 +1138,9 @@ abstract class Access implements ActiveRecordInterface
             case 4:
                 $this->setCreatedAt($value);
                 break;
+            case 5:
+                $this->setUpdatedAt($value);
+                break;
         } // switch()
 
         return $this;
@@ -1106,6 +1181,9 @@ abstract class Access implements ActiveRecordInterface
         }
         if (array_key_exists($keys[4], $arr)) {
             $this->setCreatedAt($arr[$keys[4]]);
+        }
+        if (array_key_exists($keys[5], $arr)) {
+            $this->setUpdatedAt($arr[$keys[5]]);
         }
     }
 
@@ -1162,6 +1240,9 @@ abstract class Access implements ActiveRecordInterface
         }
         if ($this->isColumnModified(AccessTableMap::COL_CREATED_AT)) {
             $criteria->add(AccessTableMap::COL_CREATED_AT, $this->created_at);
+        }
+        if ($this->isColumnModified(AccessTableMap::COL_UPDATED_AT)) {
+            $criteria->add(AccessTableMap::COL_UPDATED_AT, $this->updated_at);
         }
 
         return $criteria;
@@ -1253,6 +1334,7 @@ abstract class Access implements ActiveRecordInterface
         $copyObj->setClientId($this->getClientId());
         $copyObj->setLevel($this->getLevel());
         $copyObj->setCreatedAt($this->getCreatedAt());
+        $copyObj->setUpdatedAt($this->getUpdatedAt());
         if ($makeNew) {
             $copyObj->setNew(true);
             $copyObj->setId(NULL); // this is a auto-increment column, so set to default value
@@ -1401,6 +1483,7 @@ abstract class Access implements ActiveRecordInterface
         $this->client_id = null;
         $this->level = null;
         $this->created_at = null;
+        $this->updated_at = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
         $this->resetModified();
@@ -1433,6 +1516,20 @@ abstract class Access implements ActiveRecordInterface
     public function __toString()
     {
         return (string) $this->exportTo(AccessTableMap::DEFAULT_STRING_FORMAT);
+    }
+
+    // timestampable behavior
+
+    /**
+     * Mark the current object so that the update date doesn't get updated during next save
+     *
+     * @return     $this|ChildAccess The current object (for fluent API support)
+     */
+    public function keepUpdateDateUnchanged()
+    {
+        $this->modifiedColumns[AccessTableMap::COL_UPDATED_AT] = true;
+
+        return $this;
     }
 
     /**

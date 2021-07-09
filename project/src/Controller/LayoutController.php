@@ -24,7 +24,7 @@ class LayoutController extends ViewController
     protected function getClient()
     {
         if (!$this->client instanceof Client) {
-            $secret = $this->getExternalRequest()->headers->get('Box-Secret');
+            $secret = $this->getExternalRequest()->headers->get('Api-Secret');
 
             if (!$secret) {
                 return null;
@@ -42,7 +42,7 @@ class LayoutController extends ViewController
     {
         $client = $this->getClient();
 
-        if (!$client) {
+        if (!$client || $client->isDisabled()) {
             $this->forward('error', 'accessDenied');
         }
 
@@ -62,15 +62,29 @@ class LayoutController extends ViewController
 
     protected function assertAdmin()
     {
+        $test = $this->getContainer()->getParam('box/test');
+        $admin_secret = $this->getContainer()->getParam('box/admin_secret');
+        $secret = $this->getExternalRequest()->headers->get('Api-Secret');
+
+        if ($test === true && $admin_secret === $secret) {
+            return;
+        }
+
         $client = $this->getClient();
 
-        if (!$client || !$client->isAdmin()) {
+        if (!$client || !$client->isAdmin() || $client->isDisabled()) {
             $this->forward('error', 'accessDenied');
         }
     }
 
     protected function assertReadAccess($name)
     {
+        $client = $this->getClient();
+
+        if ($client && $client->isAdmin() && !$client->isDisabled()) {
+            return;
+        }
+
         $access = $this->getAccess($name);
 
         if (!$access) {
@@ -80,6 +94,12 @@ class LayoutController extends ViewController
 
     protected function assertWriteAccess($name)
     {
+        $client = $this->getClient();
+
+        if ($client && $client->isAdmin() && !$client->isDisabled()) {
+            return;
+        }
+
         $access = $this->getAccess($name);
 
         if (!$access || $access->getLevel() !== AccessTableMap::COL_LEVEL_WRITE) {

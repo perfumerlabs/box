@@ -22,11 +22,21 @@ use Propel\Runtime\Exception\PropelException;
  *
  * @method     ChildCollQuery orderById($order = Criteria::ASC) Order by the id column
  * @method     ChildCollQuery orderByName($order = Criteria::ASC) Order by the name column
+ * @method     ChildCollQuery orderByDescription($order = Criteria::ASC) Order by the description column
+ * @method     ChildCollQuery orderByType($order = Criteria::ASC) Order by the type column
+ * @method     ChildCollQuery orderByHandler($order = Criteria::ASC) Order by the handler column
+ * @method     ChildCollQuery orderByIsDisabled($order = Criteria::ASC) Order by the is_disabled column
  * @method     ChildCollQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
+ * @method     ChildCollQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  *
  * @method     ChildCollQuery groupById() Group by the id column
  * @method     ChildCollQuery groupByName() Group by the name column
+ * @method     ChildCollQuery groupByDescription() Group by the description column
+ * @method     ChildCollQuery groupByType() Group by the type column
+ * @method     ChildCollQuery groupByHandler() Group by the handler column
+ * @method     ChildCollQuery groupByIsDisabled() Group by the is_disabled column
  * @method     ChildCollQuery groupByCreatedAt() Group by the created_at column
+ * @method     ChildCollQuery groupByUpdatedAt() Group by the updated_at column
  *
  * @method     ChildCollQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
  * @method     ChildCollQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
@@ -46,26 +56,51 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildCollQuery rightJoinWithAccess() Adds a RIGHT JOIN clause and with to the query using the Access relation
  * @method     ChildCollQuery innerJoinWithAccess() Adds a INNER JOIN clause and with to the query using the Access relation
  *
- * @method     \Box\Model\AccessQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ * @method     ChildCollQuery leftJoinDocumentLog($relationAlias = null) Adds a LEFT JOIN clause to the query using the DocumentLog relation
+ * @method     ChildCollQuery rightJoinDocumentLog($relationAlias = null) Adds a RIGHT JOIN clause to the query using the DocumentLog relation
+ * @method     ChildCollQuery innerJoinDocumentLog($relationAlias = null) Adds a INNER JOIN clause to the query using the DocumentLog relation
  *
- * @method     ChildColl findOne(ConnectionInterface $con = null) Return the first ChildColl matching the query
+ * @method     ChildCollQuery joinWithDocumentLog($joinType = Criteria::INNER_JOIN) Adds a join clause and with to the query using the DocumentLog relation
+ *
+ * @method     ChildCollQuery leftJoinWithDocumentLog() Adds a LEFT JOIN clause and with to the query using the DocumentLog relation
+ * @method     ChildCollQuery rightJoinWithDocumentLog() Adds a RIGHT JOIN clause and with to the query using the DocumentLog relation
+ * @method     ChildCollQuery innerJoinWithDocumentLog() Adds a INNER JOIN clause and with to the query using the DocumentLog relation
+ *
+ * @method     \Box\Model\AccessQuery|\Box\Model\DocumentLogQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
+ *
+ * @method     ChildColl|null findOne(ConnectionInterface $con = null) Return the first ChildColl matching the query
  * @method     ChildColl findOneOrCreate(ConnectionInterface $con = null) Return the first ChildColl matching the query, or a new ChildColl object populated from the query conditions when no match is found
  *
- * @method     ChildColl findOneById(int $id) Return the first ChildColl filtered by the id column
- * @method     ChildColl findOneByName(string $name) Return the first ChildColl filtered by the name column
- * @method     ChildColl findOneByCreatedAt(string $created_at) Return the first ChildColl filtered by the created_at column *
+ * @method     ChildColl|null findOneById(int $id) Return the first ChildColl filtered by the id column
+ * @method     ChildColl|null findOneByName(string $name) Return the first ChildColl filtered by the name column
+ * @method     ChildColl|null findOneByDescription(string $description) Return the first ChildColl filtered by the description column
+ * @method     ChildColl|null findOneByType(int $type) Return the first ChildColl filtered by the type column
+ * @method     ChildColl|null findOneByHandler(string $handler) Return the first ChildColl filtered by the handler column
+ * @method     ChildColl|null findOneByIsDisabled(boolean $is_disabled) Return the first ChildColl filtered by the is_disabled column
+ * @method     ChildColl|null findOneByCreatedAt(string $created_at) Return the first ChildColl filtered by the created_at column
+ * @method     ChildColl|null findOneByUpdatedAt(string $updated_at) Return the first ChildColl filtered by the updated_at column *
 
  * @method     ChildColl requirePk($key, ConnectionInterface $con = null) Return the ChildColl by primary key and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildColl requireOne(ConnectionInterface $con = null) Return the first ChildColl matching the query and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildColl requireOneById(int $id) Return the first ChildColl filtered by the id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildColl requireOneByName(string $name) Return the first ChildColl filtered by the name column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildColl requireOneByDescription(string $description) Return the first ChildColl filtered by the description column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildColl requireOneByType(int $type) Return the first ChildColl filtered by the type column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildColl requireOneByHandler(string $handler) Return the first ChildColl filtered by the handler column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildColl requireOneByIsDisabled(boolean $is_disabled) Return the first ChildColl filtered by the is_disabled column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildColl requireOneByCreatedAt(string $created_at) Return the first ChildColl filtered by the created_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildColl requireOneByUpdatedAt(string $updated_at) Return the first ChildColl filtered by the updated_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildColl[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildColl objects based on current ModelCriteria
  * @method     ChildColl[]|ObjectCollection findById(int $id) Return ChildColl objects filtered by the id column
  * @method     ChildColl[]|ObjectCollection findByName(string $name) Return ChildColl objects filtered by the name column
+ * @method     ChildColl[]|ObjectCollection findByDescription(string $description) Return ChildColl objects filtered by the description column
+ * @method     ChildColl[]|ObjectCollection findByType(int $type) Return ChildColl objects filtered by the type column
+ * @method     ChildColl[]|ObjectCollection findByHandler(string $handler) Return ChildColl objects filtered by the handler column
+ * @method     ChildColl[]|ObjectCollection findByIsDisabled(boolean $is_disabled) Return ChildColl objects filtered by the is_disabled column
  * @method     ChildColl[]|ObjectCollection findByCreatedAt(string $created_at) Return ChildColl objects filtered by the created_at column
+ * @method     ChildColl[]|ObjectCollection findByUpdatedAt(string $updated_at) Return ChildColl objects filtered by the updated_at column
  * @method     ChildColl[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
  */
@@ -164,7 +199,7 @@ abstract class CollQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, name, created_at FROM box_collection WHERE id = :p0';
+        $sql = 'SELECT id, name, description, type, handler, is_disabled, created_at, updated_at FROM box_collection WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -321,6 +356,116 @@ abstract class CollQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query on the description column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByDescription('fooValue');   // WHERE description = 'fooValue'
+     * $query->filterByDescription('%fooValue%', Criteria::LIKE); // WHERE description LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $description The value to use as filter.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildCollQuery The current query, for fluid interface
+     */
+    public function filterByDescription($description = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($description)) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(CollTableMap::COL_DESCRIPTION, $description, $comparison);
+    }
+
+    /**
+     * Filter the query on the type column
+     *
+     * @param     mixed $type The value to use as filter
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildCollQuery The current query, for fluid interface
+     */
+    public function filterByType($type = null, $comparison = null)
+    {
+        $valueSet = CollTableMap::getValueSet(CollTableMap::COL_TYPE);
+        if (is_scalar($type)) {
+            if (!in_array($type, $valueSet)) {
+                throw new PropelException(sprintf('Value "%s" is not accepted in this enumerated column', $type));
+            }
+            $type = array_search($type, $valueSet);
+        } elseif (is_array($type)) {
+            $convertedValues = array();
+            foreach ($type as $value) {
+                if (!in_array($value, $valueSet)) {
+                    throw new PropelException(sprintf('Value "%s" is not accepted in this enumerated column', $value));
+                }
+                $convertedValues []= array_search($value, $valueSet);
+            }
+            $type = $convertedValues;
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(CollTableMap::COL_TYPE, $type, $comparison);
+    }
+
+    /**
+     * Filter the query on the handler column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByHandler('fooValue');   // WHERE handler = 'fooValue'
+     * $query->filterByHandler('%fooValue%', Criteria::LIKE); // WHERE handler LIKE '%fooValue%'
+     * </code>
+     *
+     * @param     string $handler The value to use as filter.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildCollQuery The current query, for fluid interface
+     */
+    public function filterByHandler($handler = null, $comparison = null)
+    {
+        if (null === $comparison) {
+            if (is_array($handler)) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(CollTableMap::COL_HANDLER, $handler, $comparison);
+    }
+
+    /**
+     * Filter the query on the is_disabled column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByIsDisabled(true); // WHERE is_disabled = true
+     * $query->filterByIsDisabled('yes'); // WHERE is_disabled = true
+     * </code>
+     *
+     * @param     boolean|string $isDisabled The value to use as filter.
+     *              Non-boolean arguments are converted using the following rules:
+     *                * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *                * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     *              Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildCollQuery The current query, for fluid interface
+     */
+    public function filterByIsDisabled($isDisabled = null, $comparison = null)
+    {
+        if (is_string($isDisabled)) {
+            $isDisabled = in_array(strtolower($isDisabled), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+        }
+
+        return $this->addUsingAlias(CollTableMap::COL_IS_DISABLED, $isDisabled, $comparison);
+    }
+
+    /**
      * Filter the query on the created_at column
      *
      * Example usage:
@@ -361,6 +506,49 @@ abstract class CollQuery extends ModelCriteria
         }
 
         return $this->addUsingAlias(CollTableMap::COL_CREATED_AT, $createdAt, $comparison);
+    }
+
+    /**
+     * Filter the query on the updated_at column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByUpdatedAt('2011-03-14'); // WHERE updated_at = '2011-03-14'
+     * $query->filterByUpdatedAt('now'); // WHERE updated_at = '2011-03-14'
+     * $query->filterByUpdatedAt(array('max' => 'yesterday')); // WHERE updated_at > '2011-03-13'
+     * </code>
+     *
+     * @param     mixed $updatedAt The value to use as filter.
+     *              Values can be integers (unix timestamps), DateTime objects, or strings.
+     *              Empty strings are treated as NULL.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildCollQuery The current query, for fluid interface
+     */
+    public function filterByUpdatedAt($updatedAt = null, $comparison = null)
+    {
+        if (is_array($updatedAt)) {
+            $useMinMax = false;
+            if (isset($updatedAt['min'])) {
+                $this->addUsingAlias(CollTableMap::COL_UPDATED_AT, $updatedAt['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($updatedAt['max'])) {
+                $this->addUsingAlias(CollTableMap::COL_UPDATED_AT, $updatedAt['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(CollTableMap::COL_UPDATED_AT, $updatedAt, $comparison);
     }
 
     /**
@@ -434,6 +622,79 @@ abstract class CollQuery extends ModelCriteria
         return $this
             ->joinAccess($relationAlias, $joinType)
             ->useQuery($relationAlias ? $relationAlias : 'Access', '\Box\Model\AccessQuery');
+    }
+
+    /**
+     * Filter the query by a related \Box\Model\DocumentLog object
+     *
+     * @param \Box\Model\DocumentLog|ObjectCollection $documentLog the related object to use as filter
+     * @param string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return ChildCollQuery The current query, for fluid interface
+     */
+    public function filterByDocumentLog($documentLog, $comparison = null)
+    {
+        if ($documentLog instanceof \Box\Model\DocumentLog) {
+            return $this
+                ->addUsingAlias(CollTableMap::COL_ID, $documentLog->getCollectionId(), $comparison);
+        } elseif ($documentLog instanceof ObjectCollection) {
+            return $this
+                ->useDocumentLogQuery()
+                ->filterByPrimaryKeys($documentLog->getPrimaryKeys())
+                ->endUse();
+        } else {
+            throw new PropelException('filterByDocumentLog() only accepts arguments of type \Box\Model\DocumentLog or Collection');
+        }
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the DocumentLog relation
+     *
+     * @param     string $relationAlias optional alias for the relation
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this|ChildCollQuery The current query, for fluid interface
+     */
+    public function joinDocumentLog($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('DocumentLog');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $join->setRelationMap($relationMap, $this->useAliasInSQL ? $this->getModelAlias() : null, $relationAlias);
+        if ($previousJoin = $this->getPreviousJoin()) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'DocumentLog');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the DocumentLog relation DocumentLog object
+     *
+     * @see useQuery()
+     *
+     * @param     string $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param     string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \Box\Model\DocumentLogQuery A secondary query class using the current class as primary query
+     */
+    public function useDocumentLogQuery($relationAlias = null, $joinType = Criteria::INNER_JOIN)
+    {
+        return $this
+            ->joinDocumentLog($relationAlias, $joinType)
+            ->useQuery($relationAlias ? $relationAlias : 'DocumentLog', '\Box\Model\DocumentLogQuery');
     }
 
     /**
@@ -514,6 +775,38 @@ abstract class CollQuery extends ModelCriteria
     }
 
     // timestampable behavior
+
+    /**
+     * Filter by the latest updated
+     *
+     * @param      int $nbDays Maximum age of the latest update in days
+     *
+     * @return     $this|ChildCollQuery The current query, for fluid interface
+     */
+    public function recentlyUpdated($nbDays = 7)
+    {
+        return $this->addUsingAlias(CollTableMap::COL_UPDATED_AT, time() - $nbDays * 24 * 60 * 60, Criteria::GREATER_EQUAL);
+    }
+
+    /**
+     * Order by update date desc
+     *
+     * @return     $this|ChildCollQuery The current query, for fluid interface
+     */
+    public function lastUpdatedFirst()
+    {
+        return $this->addDescendingOrderByColumn(CollTableMap::COL_UPDATED_AT);
+    }
+
+    /**
+     * Order by update date asc
+     *
+     * @return     $this|ChildCollQuery The current query, for fluid interface
+     */
+    public function firstUpdatedFirst()
+    {
+        return $this->addAscendingOrderByColumn(CollTableMap::COL_UPDATED_AT);
+    }
 
     /**
      * Order by create date desc

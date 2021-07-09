@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <database name="box" defaultIdMethod="native" namespace="Box\Model">
     <!-- Perfumer default model schemas -->
+    <!--
+        table with parameters of CRM container.
+        All of these parameters appear at special page in Perfumer, where they can be configured by hand
+    -->
+    <table name="box_resource" phpName="Resource">
+        <column name="id" type="integer" required="true" primaryKey="true" autoIncrement="true"/>
+        <column name="name" type="varchar" size="255" required="true"/> <!-- Name of parameter group -->
+        <column name="parameter" type="varchar" size="255" required="true"/> <!-- Name of parameter -->
+        <column name="value" type="longvarchar"/> <!-- php-serialized value -->
+        <behavior name="timestampable"/>
+        <index>
+            <index-column name="name"/>
+        </index>
+    </table>
     <!-- Perfumer default model schemas -->
 </database>

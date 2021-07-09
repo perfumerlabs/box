@@ -3,3 +3,6 @@
 nbproject
 /project/tmp/*
 /project/vendor/*
+/project/tests/_output/*
+/project/env.php
+/project/propel.php

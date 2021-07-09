@@ -25,12 +25,14 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAccessQuery orderByClientId($order = Criteria::ASC) Order by the client_id column
  * @method     ChildAccessQuery orderByLevel($order = Criteria::ASC) Order by the level column
  * @method     ChildAccessQuery orderByCreatedAt($order = Criteria::ASC) Order by the created_at column
+ * @method     ChildAccessQuery orderByUpdatedAt($order = Criteria::ASC) Order by the updated_at column
  *
  * @method     ChildAccessQuery groupById() Group by the id column
  * @method     ChildAccessQuery groupByCollectionId() Group by the collection_id column
  * @method     ChildAccessQuery groupByClientId() Group by the client_id column
  * @method     ChildAccessQuery groupByLevel() Group by the level column
  * @method     ChildAccessQuery groupByCreatedAt() Group by the created_at column
+ * @method     ChildAccessQuery groupByUpdatedAt() Group by the updated_at column
  *
  * @method     ChildAccessQuery leftJoin($relation) Adds a LEFT JOIN clause to the query
  * @method     ChildAccessQuery rightJoin($relation) Adds a RIGHT JOIN clause to the query
@@ -62,14 +64,15 @@ use Propel\Runtime\Exception\PropelException;
  *
  * @method     \Box\Model\ClientQuery|\Box\Model\CollQuery endUse() Finalizes a secondary criteria and merges it with its primary Criteria
  *
- * @method     ChildAccess findOne(ConnectionInterface $con = null) Return the first ChildAccess matching the query
+ * @method     ChildAccess|null findOne(ConnectionInterface $con = null) Return the first ChildAccess matching the query
  * @method     ChildAccess findOneOrCreate(ConnectionInterface $con = null) Return the first ChildAccess matching the query, or a new ChildAccess object populated from the query conditions when no match is found
  *
- * @method     ChildAccess findOneById(int $id) Return the first ChildAccess filtered by the id column
- * @method     ChildAccess findOneByCollectionId(int $collection_id) Return the first ChildAccess filtered by the collection_id column
- * @method     ChildAccess findOneByClientId(int $client_id) Return the first ChildAccess filtered by the client_id column
- * @method     ChildAccess findOneByLevel(int $level) Return the first ChildAccess filtered by the level column
- * @method     ChildAccess findOneByCreatedAt(string $created_at) Return the first ChildAccess filtered by the created_at column *
+ * @method     ChildAccess|null findOneById(int $id) Return the first ChildAccess filtered by the id column
+ * @method     ChildAccess|null findOneByCollectionId(int $collection_id) Return the first ChildAccess filtered by the collection_id column
+ * @method     ChildAccess|null findOneByClientId(int $client_id) Return the first ChildAccess filtered by the client_id column
+ * @method     ChildAccess|null findOneByLevel(int $level) Return the first ChildAccess filtered by the level column
+ * @method     ChildAccess|null findOneByCreatedAt(string $created_at) Return the first ChildAccess filtered by the created_at column
+ * @method     ChildAccess|null findOneByUpdatedAt(string $updated_at) Return the first ChildAccess filtered by the updated_at column *
 
  * @method     ChildAccess requirePk($key, ConnectionInterface $con = null) Return the ChildAccess by primary key and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildAccess requireOne(ConnectionInterface $con = null) Return the first ChildAccess matching the query and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
@@ -79,6 +82,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAccess requireOneByClientId(int $client_id) Return the first ChildAccess filtered by the client_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildAccess requireOneByLevel(int $level) Return the first ChildAccess filtered by the level column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method     ChildAccess requireOneByCreatedAt(string $created_at) Return the first ChildAccess filtered by the created_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method     ChildAccess requireOneByUpdatedAt(string $updated_at) Return the first ChildAccess filtered by the updated_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method     ChildAccess[]|ObjectCollection find(ConnectionInterface $con = null) Return ChildAccess objects based on current ModelCriteria
  * @method     ChildAccess[]|ObjectCollection findById(int $id) Return ChildAccess objects filtered by the id column
@@ -86,6 +90,7 @@ use Propel\Runtime\Exception\PropelException;
  * @method     ChildAccess[]|ObjectCollection findByClientId(int $client_id) Return ChildAccess objects filtered by the client_id column
  * @method     ChildAccess[]|ObjectCollection findByLevel(int $level) Return ChildAccess objects filtered by the level column
  * @method     ChildAccess[]|ObjectCollection findByCreatedAt(string $created_at) Return ChildAccess objects filtered by the created_at column
+ * @method     ChildAccess[]|ObjectCollection findByUpdatedAt(string $updated_at) Return ChildAccess objects filtered by the updated_at column
  * @method     ChildAccess[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  *
  */
@@ -184,7 +189,7 @@ abstract class AccessQuery extends ModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con)
     {
-        $sql = 'SELECT id, collection_id, client_id, level, created_at FROM box_access WHERE id = :p0';
+        $sql = 'SELECT id, collection_id, client_id, level, created_at, updated_at FROM box_access WHERE id = :p0';
         try {
             $stmt = $con->prepare($sql);
             $stmt->bindValue(':p0', $key, PDO::PARAM_INT);
@@ -478,6 +483,49 @@ abstract class AccessQuery extends ModelCriteria
     }
 
     /**
+     * Filter the query on the updated_at column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByUpdatedAt('2011-03-14'); // WHERE updated_at = '2011-03-14'
+     * $query->filterByUpdatedAt('now'); // WHERE updated_at = '2011-03-14'
+     * $query->filterByUpdatedAt(array('max' => 'yesterday')); // WHERE updated_at > '2011-03-13'
+     * </code>
+     *
+     * @param     mixed $updatedAt The value to use as filter.
+     *              Values can be integers (unix timestamps), DateTime objects, or strings.
+     *              Empty strings are treated as NULL.
+     *              Use scalar values for equality.
+     *              Use array values for in_array() equivalent.
+     *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
+     * @param     string $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this|ChildAccessQuery The current query, for fluid interface
+     */
+    public function filterByUpdatedAt($updatedAt = null, $comparison = null)
+    {
+        if (is_array($updatedAt)) {
+            $useMinMax = false;
+            if (isset($updatedAt['min'])) {
+                $this->addUsingAlias(AccessTableMap::COL_UPDATED_AT, $updatedAt['min'], Criteria::GREATER_EQUAL);
+                $useMinMax = true;
+            }
+            if (isset($updatedAt['max'])) {
+                $this->addUsingAlias(AccessTableMap::COL_UPDATED_AT, $updatedAt['max'], Criteria::LESS_EQUAL);
+                $useMinMax = true;
+            }
+            if ($useMinMax) {
+                return $this;
+            }
+            if (null === $comparison) {
+                $comparison = Criteria::IN;
+            }
+        }
+
+        return $this->addUsingAlias(AccessTableMap::COL_UPDATED_AT, $updatedAt, $comparison);
+    }
+
+    /**
      * Filter the query by a related \Box\Model\Client object
      *
      * @param \Box\Model\Client|ObjectCollection $client The related object(s) to use as filter
@@ -709,6 +757,38 @@ abstract class AccessQuery extends ModelCriteria
     }
 
     // timestampable behavior
+
+    /**
+     * Filter by the latest updated
+     *
+     * @param      int $nbDays Maximum age of the latest update in days
+     *
+     * @return     $this|ChildAccessQuery The current query, for fluid interface
+     */
+    public function recentlyUpdated($nbDays = 7)
+    {
+        return $this->addUsingAlias(AccessTableMap::COL_UPDATED_AT, time() - $nbDays * 24 * 60 * 60, Criteria::GREATER_EQUAL);
+    }
+
+    /**
+     * Order by update date desc
+     *
+     * @return     $this|ChildAccessQuery The current query, for fluid interface
+     */
+    public function lastUpdatedFirst()
+    {
+        return $this->addDescendingOrderByColumn(AccessTableMap::COL_UPDATED_AT);
+    }
+
+    /**
+     * Order by update date asc
+     *
+     * @return     $this|ChildAccessQuery The current query, for fluid interface
+     */
+    public function firstUpdatedFirst()
+    {
+        return $this->addAscendingOrderByColumn(AccessTableMap::COL_UPDATED_AT);
+    }
 
     /**
      * Order by create date desc

@@ -9,8 +9,11 @@ use Box\Model\Access as ChildAccess;
 use Box\Model\AccessQuery as ChildAccessQuery;
 use Box\Model\Client as ChildClient;
 use Box\Model\ClientQuery as ChildClientQuery;
+use Box\Model\DocumentLog as ChildDocumentLog;
+use Box\Model\DocumentLogQuery as ChildDocumentLogQuery;
 use Box\Model\Map\AccessTableMap;
 use Box\Model\Map\ClientTableMap;
+use Box\Model\Map\DocumentLogTableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
@@ -76,14 +79,21 @@ abstract class Client implements ActiveRecordInterface
     /**
      * The value for the name field.
      *
-     * @var        string
+     * @var        string|null
      */
     protected $name;
 
     /**
+     * The value for the description field.
+     *
+     * @var        string|null
+     */
+    protected $description;
+
+    /**
      * The value for the secret field.
      *
-     * @var        string
+     * @var        string|null
      */
     protected $secret;
 
@@ -96,17 +106,38 @@ abstract class Client implements ActiveRecordInterface
     protected $is_admin;
 
     /**
+     * The value for the is_disabled field.
+     *
+     * Note: this column has a database default value of: false
+     * @var        boolean
+     */
+    protected $is_disabled;
+
+    /**
      * The value for the created_at field.
      *
-     * @var        DateTime
+     * @var        DateTime|null
      */
     protected $created_at;
+
+    /**
+     * The value for the updated_at field.
+     *
+     * @var        DateTime|null
+     */
+    protected $updated_at;
 
     /**
      * @var        ObjectCollection|ChildAccess[] Collection to store aggregation of ChildAccess objects.
      */
     protected $collAccesses;
     protected $collAccessesPartial;
+
+    /**
+     * @var        ObjectCollection|ChildDocumentLog[] Collection to store aggregation of ChildDocumentLog objects.
+     */
+    protected $collDocumentLogs;
+    protected $collDocumentLogsPartial;
 
     /**
      * Flag to prevent endless save loop, if this object is referenced
@@ -123,6 +154,12 @@ abstract class Client implements ActiveRecordInterface
     protected $accessesScheduledForDeletion = null;
 
     /**
+     * An array of objects scheduled for deletion.
+     * @var ObjectCollection|ChildDocumentLog[]
+     */
+    protected $documentLogsScheduledForDeletion = null;
+
+    /**
      * Applies default values to this object.
      * This method should be called from the object's constructor (or
      * equivalent initialization method).
@@ -131,6 +168,7 @@ abstract class Client implements ActiveRecordInterface
     public function applyDefaultValues()
     {
         $this->is_admin = false;
+        $this->is_disabled = false;
     }
 
     /**
@@ -373,7 +411,7 @@ abstract class Client implements ActiveRecordInterface
     /**
      * Get the [name] column value.
      *
-     * @return string
+     * @return string|null
      */
     public function getName()
     {
@@ -381,9 +419,19 @@ abstract class Client implements ActiveRecordInterface
     }
 
     /**
+     * Get the [description] column value.
+     *
+     * @return string|null
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
      * Get the [secret] column value.
      *
-     * @return string
+     * @return string|null
      */
     public function getSecret()
     {
@@ -411,22 +459,62 @@ abstract class Client implements ActiveRecordInterface
     }
 
     /**
+     * Get the [is_disabled] column value.
+     *
+     * @return boolean
+     */
+    public function getIsDisabled()
+    {
+        return $this->is_disabled;
+    }
+
+    /**
+     * Get the [is_disabled] column value.
+     *
+     * @return boolean
+     */
+    public function isDisabled()
+    {
+        return $this->getIsDisabled();
+    }
+
+    /**
      * Get the [optionally formatted] temporal [created_at] column value.
      *
      *
-     * @param      string|null $format The date/time format string (either date()-style or strftime()-style).
-     *                            If format is NULL, then the raw DateTime object will be returned.
+     * @param string|null $format The date/time format string (either date()-style or strftime()-style).
+     *   If format is NULL, then the raw DateTime object will be returned.
      *
-     * @return string|DateTime Formatted date/time value as string or DateTime object (if format is NULL), NULL if column is NULL
+     * @return string|DateTime|null Formatted date/time value as string or DateTime object (if format is NULL), NULL if column is NULL
      *
      * @throws PropelException - if unable to parse/validate the date/time value.
      */
-    public function getCreatedAt($format = NULL)
+    public function getCreatedAt($format = null)
     {
         if ($format === null) {
             return $this->created_at;
         } else {
             return $this->created_at instanceof \DateTimeInterface ? $this->created_at->format($format) : null;
+        }
+    }
+
+    /**
+     * Get the [optionally formatted] temporal [updated_at] column value.
+     *
+     *
+     * @param string|null $format The date/time format string (either date()-style or strftime()-style).
+     *   If format is NULL, then the raw DateTime object will be returned.
+     *
+     * @return string|DateTime|null Formatted date/time value as string or DateTime object (if format is NULL), NULL if column is NULL
+     *
+     * @throws PropelException - if unable to parse/validate the date/time value.
+     */
+    public function getUpdatedAt($format = null)
+    {
+        if ($format === null) {
+            return $this->updated_at;
+        } else {
+            return $this->updated_at instanceof \DateTimeInterface ? $this->updated_at->format($format) : null;
         }
     }
 
@@ -469,6 +557,26 @@ abstract class Client implements ActiveRecordInterface
 
         return $this;
     } // setName()
+
+    /**
+     * Set the value of [description] column.
+     *
+     * @param string|null $v New value
+     * @return $this|\Box\Model\Client The current object (for fluent API support)
+     */
+    public function setDescription($v)
+    {
+        if ($v !== null) {
+            $v = (string) $v;
+        }
+
+        if ($this->description !== $v) {
+            $this->description = $v;
+            $this->modifiedColumns[ClientTableMap::COL_DESCRIPTION] = true;
+        }
+
+        return $this;
+    } // setDescription()
 
     /**
      * Set the value of [secret] column.
@@ -519,9 +627,37 @@ abstract class Client implements ActiveRecordInterface
     } // setIsAdmin()
 
     /**
+     * Sets the value of the [is_disabled] column.
+     * Non-boolean arguments are converted using the following rules:
+     *   * 1, '1', 'true',  'on',  and 'yes' are converted to boolean true
+     *   * 0, '0', 'false', 'off', and 'no'  are converted to boolean false
+     * Check on string values is case insensitive (so 'FaLsE' is seen as 'false').
+     *
+     * @param  boolean|integer|string $v The new value
+     * @return $this|\Box\Model\Client The current object (for fluent API support)
+     */
+    public function setIsDisabled($v)
+    {
+        if ($v !== null) {
+            if (is_string($v)) {
+                $v = in_array(strtolower($v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            } else {
+                $v = (boolean) $v;
+            }
+        }
+
+        if ($this->is_disabled !== $v) {
+            $this->is_disabled = $v;
+            $this->modifiedColumns[ClientTableMap::COL_IS_DISABLED] = true;
+        }
+
+        return $this;
+    } // setIsDisabled()
+
+    /**
      * Sets the value of [created_at] column to a normalized version of the date/time value specified.
      *
-     * @param  mixed $v string, integer (timestamp), or \DateTimeInterface value.
+     * @param  string|integer|\DateTimeInterface|null $v string, integer (timestamp), or \DateTimeInterface value.
      *               Empty strings are treated as NULL.
      * @return $this|\Box\Model\Client The current object (for fluent API support)
      */
@@ -539,6 +675,26 @@ abstract class Client implements ActiveRecordInterface
     } // setCreatedAt()
 
     /**
+     * Sets the value of [updated_at] column to a normalized version of the date/time value specified.
+     *
+     * @param  string|integer|\DateTimeInterface|null $v string, integer (timestamp), or \DateTimeInterface value.
+     *               Empty strings are treated as NULL.
+     * @return $this|\Box\Model\Client The current object (for fluent API support)
+     */
+    public function setUpdatedAt($v)
+    {
+        $dt = PropelDateTime::newInstance($v, null, 'DateTime');
+        if ($this->updated_at !== null || $dt !== null) {
+            if ($this->updated_at === null || $dt === null || $dt->format("Y-m-d H:i:s.u") !== $this->updated_at->format("Y-m-d H:i:s.u")) {
+                $this->updated_at = $dt === null ? null : clone $dt;
+                $this->modifiedColumns[ClientTableMap::COL_UPDATED_AT] = true;
+            }
+        } // if either are not null
+
+        return $this;
+    } // setUpdatedAt()
+
+    /**
      * Indicates whether the columns in this object are only set to default values.
      *
      * This method can be used in conjunction with isModified() to indicate whether an object is both
@@ -549,6 +705,10 @@ abstract class Client implements ActiveRecordInterface
     public function hasOnlyDefaultValues()
     {
             if ($this->is_admin !== false) {
+                return false;
+            }
+
+            if ($this->is_disabled !== false) {
                 return false;
             }
 
@@ -584,14 +744,23 @@ abstract class Client implements ActiveRecordInterface
             $col = $row[TableMap::TYPE_NUM == $indexType ? 1 + $startcol : ClientTableMap::translateFieldName('Name', TableMap::TYPE_PHPNAME, $indexType)];
             $this->name = (null !== $col) ? (string) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 2 + $startcol : ClientTableMap::translateFieldName('Secret', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 2 + $startcol : ClientTableMap::translateFieldName('Description', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->description = (null !== $col) ? (string) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 3 + $startcol : ClientTableMap::translateFieldName('Secret', TableMap::TYPE_PHPNAME, $indexType)];
             $this->secret = (null !== $col) ? (string) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 3 + $startcol : ClientTableMap::translateFieldName('IsAdmin', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 4 + $startcol : ClientTableMap::translateFieldName('IsAdmin', TableMap::TYPE_PHPNAME, $indexType)];
             $this->is_admin = (null !== $col) ? (boolean) $col : null;
 
-            $col = $row[TableMap::TYPE_NUM == $indexType ? 4 + $startcol : ClientTableMap::translateFieldName('CreatedAt', TableMap::TYPE_PHPNAME, $indexType)];
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 5 + $startcol : ClientTableMap::translateFieldName('IsDisabled', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->is_disabled = (null !== $col) ? (boolean) $col : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 6 + $startcol : ClientTableMap::translateFieldName('CreatedAt', TableMap::TYPE_PHPNAME, $indexType)];
             $this->created_at = (null !== $col) ? PropelDateTime::newInstance($col, null, 'DateTime') : null;
+
+            $col = $row[TableMap::TYPE_NUM == $indexType ? 7 + $startcol : ClientTableMap::translateFieldName('UpdatedAt', TableMap::TYPE_PHPNAME, $indexType)];
+            $this->updated_at = (null !== $col) ? PropelDateTime::newInstance($col, null, 'DateTime') : null;
             $this->resetModified();
 
             $this->setNew(false);
@@ -600,7 +769,7 @@ abstract class Client implements ActiveRecordInterface
                 $this->ensureConsistency();
             }
 
-            return $startcol + 5; // 5 = ClientTableMap::NUM_HYDRATE_COLUMNS.
+            return $startcol + 8; // 8 = ClientTableMap::NUM_HYDRATE_COLUMNS.
 
         } catch (Exception $e) {
             throw new PropelException(sprintf('Error populating %s object', '\\Box\\Model\\Client'), 0, $e);
@@ -662,6 +831,8 @@ abstract class Client implements ActiveRecordInterface
         if ($deep) {  // also de-associate any related objects?
 
             $this->collAccesses = null;
+
+            $this->collDocumentLogs = null;
 
         } // if (deep)
     }
@@ -735,8 +906,15 @@ abstract class Client implements ActiveRecordInterface
                 if (!$this->isColumnModified(ClientTableMap::COL_CREATED_AT)) {
                     $this->setCreatedAt($highPrecision);
                 }
+                if (!$this->isColumnModified(ClientTableMap::COL_UPDATED_AT)) {
+                    $this->setUpdatedAt($highPrecision);
+                }
             } else {
                 $ret = $ret && $this->preUpdate($con);
+                // timestampable behavior
+                if ($this->isModified() && !$this->isColumnModified(ClientTableMap::COL_UPDATED_AT)) {
+                    $this->setUpdatedAt(\Propel\Runtime\Util\PropelDateTime::createHighPrecision());
+                }
             }
             if ($ret) {
                 $affectedRows = $this->doSave($con);
@@ -800,6 +978,23 @@ abstract class Client implements ActiveRecordInterface
                 }
             }
 
+            if ($this->documentLogsScheduledForDeletion !== null) {
+                if (!$this->documentLogsScheduledForDeletion->isEmpty()) {
+                    \Box\Model\DocumentLogQuery::create()
+                        ->filterByPrimaryKeys($this->documentLogsScheduledForDeletion->getPrimaryKeys(false))
+                        ->delete($con);
+                    $this->documentLogsScheduledForDeletion = null;
+                }
+            }
+
+            if ($this->collDocumentLogs !== null) {
+                foreach ($this->collDocumentLogs as $referrerFK) {
+                    if (!$referrerFK->isDeleted() && ($referrerFK->isNew() || $referrerFK->isModified())) {
+                        $affectedRows += $referrerFK->save($con);
+                    }
+                }
+            }
+
             $this->alreadyInSave = false;
 
         }
@@ -841,14 +1036,23 @@ abstract class Client implements ActiveRecordInterface
         if ($this->isColumnModified(ClientTableMap::COL_NAME)) {
             $modifiedColumns[':p' . $index++]  = 'name';
         }
+        if ($this->isColumnModified(ClientTableMap::COL_DESCRIPTION)) {
+            $modifiedColumns[':p' . $index++]  = 'description';
+        }
         if ($this->isColumnModified(ClientTableMap::COL_SECRET)) {
             $modifiedColumns[':p' . $index++]  = 'secret';
         }
         if ($this->isColumnModified(ClientTableMap::COL_IS_ADMIN)) {
             $modifiedColumns[':p' . $index++]  = 'is_admin';
         }
+        if ($this->isColumnModified(ClientTableMap::COL_IS_DISABLED)) {
+            $modifiedColumns[':p' . $index++]  = 'is_disabled';
+        }
         if ($this->isColumnModified(ClientTableMap::COL_CREATED_AT)) {
             $modifiedColumns[':p' . $index++]  = 'created_at';
+        }
+        if ($this->isColumnModified(ClientTableMap::COL_UPDATED_AT)) {
+            $modifiedColumns[':p' . $index++]  = 'updated_at';
         }
 
         $sql = sprintf(
@@ -867,14 +1071,23 @@ abstract class Client implements ActiveRecordInterface
                     case 'name':
                         $stmt->bindValue($identifier, $this->name, PDO::PARAM_STR);
                         break;
+                    case 'description':
+                        $stmt->bindValue($identifier, $this->description, PDO::PARAM_STR);
+                        break;
                     case 'secret':
                         $stmt->bindValue($identifier, $this->secret, PDO::PARAM_STR);
                         break;
                     case 'is_admin':
                         $stmt->bindValue($identifier, $this->is_admin, PDO::PARAM_BOOL);
                         break;
+                    case 'is_disabled':
+                        $stmt->bindValue($identifier, $this->is_disabled, PDO::PARAM_BOOL);
+                        break;
                     case 'created_at':
                         $stmt->bindValue($identifier, $this->created_at ? $this->created_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
+                        break;
+                    case 'updated_at':
+                        $stmt->bindValue($identifier, $this->updated_at ? $this->updated_at->format("Y-m-d H:i:s.u") : null, PDO::PARAM_STR);
                         break;
                 }
             }
@@ -938,13 +1151,22 @@ abstract class Client implements ActiveRecordInterface
                 return $this->getName();
                 break;
             case 2:
-                return $this->getSecret();
+                return $this->getDescription();
                 break;
             case 3:
-                return $this->getIsAdmin();
+                return $this->getSecret();
                 break;
             case 4:
+                return $this->getIsAdmin();
+                break;
+            case 5:
+                return $this->getIsDisabled();
+                break;
+            case 6:
                 return $this->getCreatedAt();
+                break;
+            case 7:
+                return $this->getUpdatedAt();
                 break;
             default:
                 return null;
@@ -978,12 +1200,19 @@ abstract class Client implements ActiveRecordInterface
         $result = array(
             $keys[0] => $this->getId(),
             $keys[1] => $this->getName(),
-            $keys[2] => $this->getSecret(),
-            $keys[3] => $this->getIsAdmin(),
-            $keys[4] => $this->getCreatedAt(),
+            $keys[2] => $this->getDescription(),
+            $keys[3] => $this->getSecret(),
+            $keys[4] => $this->getIsAdmin(),
+            $keys[5] => $this->getIsDisabled(),
+            $keys[6] => $this->getCreatedAt(),
+            $keys[7] => $this->getUpdatedAt(),
         );
-        if ($result[$keys[4]] instanceof \DateTimeInterface) {
-            $result[$keys[4]] = $result[$keys[4]]->format('c');
+        if ($result[$keys[6]] instanceof \DateTimeInterface) {
+            $result[$keys[6]] = $result[$keys[6]]->format('Y-m-d H:i:s.u');
+        }
+
+        if ($result[$keys[7]] instanceof \DateTimeInterface) {
+            $result[$keys[7]] = $result[$keys[7]]->format('Y-m-d H:i:s.u');
         }
 
         $virtualColumns = $this->virtualColumns;
@@ -1006,6 +1235,21 @@ abstract class Client implements ActiveRecordInterface
                 }
 
                 $result[$key] = $this->collAccesses->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
+            }
+            if (null !== $this->collDocumentLogs) {
+
+                switch ($keyType) {
+                    case TableMap::TYPE_CAMELNAME:
+                        $key = 'documentLogs';
+                        break;
+                    case TableMap::TYPE_FIELDNAME:
+                        $key = 'box_document_logs';
+                        break;
+                    default:
+                        $key = 'DocumentLogs';
+                }
+
+                $result[$key] = $this->collDocumentLogs->toArray(null, false, $keyType, $includeLazyLoadColumns, $alreadyDumpedObjects);
             }
         }
 
@@ -1048,13 +1292,22 @@ abstract class Client implements ActiveRecordInterface
                 $this->setName($value);
                 break;
             case 2:
-                $this->setSecret($value);
+                $this->setDescription($value);
                 break;
             case 3:
-                $this->setIsAdmin($value);
+                $this->setSecret($value);
                 break;
             case 4:
+                $this->setIsAdmin($value);
+                break;
+            case 5:
+                $this->setIsDisabled($value);
+                break;
+            case 6:
                 $this->setCreatedAt($value);
+                break;
+            case 7:
+                $this->setUpdatedAt($value);
                 break;
         } // switch()
 
@@ -1089,13 +1342,22 @@ abstract class Client implements ActiveRecordInterface
             $this->setName($arr[$keys[1]]);
         }
         if (array_key_exists($keys[2], $arr)) {
-            $this->setSecret($arr[$keys[2]]);
+            $this->setDescription($arr[$keys[2]]);
         }
         if (array_key_exists($keys[3], $arr)) {
-            $this->setIsAdmin($arr[$keys[3]]);
+            $this->setSecret($arr[$keys[3]]);
         }
         if (array_key_exists($keys[4], $arr)) {
-            $this->setCreatedAt($arr[$keys[4]]);
+            $this->setIsAdmin($arr[$keys[4]]);
+        }
+        if (array_key_exists($keys[5], $arr)) {
+            $this->setIsDisabled($arr[$keys[5]]);
+        }
+        if (array_key_exists($keys[6], $arr)) {
+            $this->setCreatedAt($arr[$keys[6]]);
+        }
+        if (array_key_exists($keys[7], $arr)) {
+            $this->setUpdatedAt($arr[$keys[7]]);
         }
     }
 
@@ -1144,14 +1406,23 @@ abstract class Client implements ActiveRecordInterface
         if ($this->isColumnModified(ClientTableMap::COL_NAME)) {
             $criteria->add(ClientTableMap::COL_NAME, $this->name);
         }
+        if ($this->isColumnModified(ClientTableMap::COL_DESCRIPTION)) {
+            $criteria->add(ClientTableMap::COL_DESCRIPTION, $this->description);
+        }
         if ($this->isColumnModified(ClientTableMap::COL_SECRET)) {
             $criteria->add(ClientTableMap::COL_SECRET, $this->secret);
         }
         if ($this->isColumnModified(ClientTableMap::COL_IS_ADMIN)) {
             $criteria->add(ClientTableMap::COL_IS_ADMIN, $this->is_admin);
         }
+        if ($this->isColumnModified(ClientTableMap::COL_IS_DISABLED)) {
+            $criteria->add(ClientTableMap::COL_IS_DISABLED, $this->is_disabled);
+        }
         if ($this->isColumnModified(ClientTableMap::COL_CREATED_AT)) {
             $criteria->add(ClientTableMap::COL_CREATED_AT, $this->created_at);
+        }
+        if ($this->isColumnModified(ClientTableMap::COL_UPDATED_AT)) {
+            $criteria->add(ClientTableMap::COL_UPDATED_AT, $this->updated_at);
         }
 
         return $criteria;
@@ -1240,9 +1511,12 @@ abstract class Client implements ActiveRecordInterface
     public function copyInto($copyObj, $deepCopy = false, $makeNew = true)
     {
         $copyObj->setName($this->getName());
+        $copyObj->setDescription($this->getDescription());
         $copyObj->setSecret($this->getSecret());
         $copyObj->setIsAdmin($this->getIsAdmin());
+        $copyObj->setIsDisabled($this->getIsDisabled());
         $copyObj->setCreatedAt($this->getCreatedAt());
+        $copyObj->setUpdatedAt($this->getUpdatedAt());
 
         if ($deepCopy) {
             // important: temporarily setNew(false) because this affects the behavior of
@@ -1252,6 +1526,12 @@ abstract class Client implements ActiveRecordInterface
             foreach ($this->getAccesses() as $relObj) {
                 if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
                     $copyObj->addAccess($relObj->copy($deepCopy));
+                }
+            }
+
+            foreach ($this->getDocumentLogs() as $relObj) {
+                if ($relObj !== $this) {  // ensure that we don't try to copy a reference to ourselves
+                    $copyObj->addDocumentLog($relObj->copy($deepCopy));
                 }
             }
 
@@ -1298,6 +1578,10 @@ abstract class Client implements ActiveRecordInterface
     {
         if ('Access' === $relationName) {
             $this->initAccesses();
+            return;
+        }
+        if ('DocumentLog' === $relationName) {
+            $this->initDocumentLogs();
             return;
         }
     }
@@ -1562,6 +1846,265 @@ abstract class Client implements ActiveRecordInterface
     }
 
     /**
+     * Clears out the collDocumentLogs collection
+     *
+     * This does not modify the database; however, it will remove any associated objects, causing
+     * them to be refetched by subsequent calls to accessor method.
+     *
+     * @return void
+     * @see        addDocumentLogs()
+     */
+    public function clearDocumentLogs()
+    {
+        $this->collDocumentLogs = null; // important to set this to NULL since that means it is uninitialized
+    }
+
+    /**
+     * Reset is the collDocumentLogs collection loaded partially.
+     */
+    public function resetPartialDocumentLogs($v = true)
+    {
+        $this->collDocumentLogsPartial = $v;
+    }
+
+    /**
+     * Initializes the collDocumentLogs collection.
+     *
+     * By default this just sets the collDocumentLogs collection to an empty array (like clearcollDocumentLogs());
+     * however, you may wish to override this method in your stub class to provide setting appropriate
+     * to your application -- for example, setting the initial array to the values stored in database.
+     *
+     * @param      boolean $overrideExisting If set to true, the method call initializes
+     *                                        the collection even if it is not empty
+     *
+     * @return void
+     */
+    public function initDocumentLogs($overrideExisting = true)
+    {
+        if (null !== $this->collDocumentLogs && !$overrideExisting) {
+            return;
+        }
+
+        $collectionClassName = DocumentLogTableMap::getTableMap()->getCollectionClassName();
+
+        $this->collDocumentLogs = new $collectionClassName;
+        $this->collDocumentLogs->setModel('\Box\Model\DocumentLog');
+    }
+
+    /**
+     * Gets an array of ChildDocumentLog objects which contain a foreign key that references this object.
+     *
+     * If the $criteria is not null, it is used to always fetch the results from the database.
+     * Otherwise the results are fetched from the database the first time, then cached.
+     * Next time the same method is called without $criteria, the cached collection is returned.
+     * If this ChildClient is new, it will return
+     * an empty collection or the current collection; the criteria is ignored on a new object.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @return ObjectCollection|ChildDocumentLog[] List of ChildDocumentLog objects
+     * @throws PropelException
+     */
+    public function getDocumentLogs(Criteria $criteria = null, ConnectionInterface $con = null)
+    {
+        $partial = $this->collDocumentLogsPartial && !$this->isNew();
+        if (null === $this->collDocumentLogs || null !== $criteria || $partial) {
+            if ($this->isNew()) {
+                // return empty collection
+                if (null === $this->collDocumentLogs) {
+                    $this->initDocumentLogs();
+                } else {
+                    $collectionClassName = DocumentLogTableMap::getTableMap()->getCollectionClassName();
+
+                    $collDocumentLogs = new $collectionClassName;
+                    $collDocumentLogs->setModel('\Box\Model\DocumentLog');
+
+                    return $collDocumentLogs;
+                }
+            } else {
+                $collDocumentLogs = ChildDocumentLogQuery::create(null, $criteria)
+                    ->filterByClient($this)
+                    ->find($con);
+
+                if (null !== $criteria) {
+                    if (false !== $this->collDocumentLogsPartial && count($collDocumentLogs)) {
+                        $this->initDocumentLogs(false);
+
+                        foreach ($collDocumentLogs as $obj) {
+                            if (false == $this->collDocumentLogs->contains($obj)) {
+                                $this->collDocumentLogs->append($obj);
+                            }
+                        }
+
+                        $this->collDocumentLogsPartial = true;
+                    }
+
+                    return $collDocumentLogs;
+                }
+
+                if ($partial && $this->collDocumentLogs) {
+                    foreach ($this->collDocumentLogs as $obj) {
+                        if ($obj->isNew()) {
+                            $collDocumentLogs[] = $obj;
+                        }
+                    }
+                }
+
+                $this->collDocumentLogs = $collDocumentLogs;
+                $this->collDocumentLogsPartial = false;
+            }
+        }
+
+        return $this->collDocumentLogs;
+    }
+
+    /**
+     * Sets a collection of ChildDocumentLog objects related by a one-to-many relationship
+     * to the current object.
+     * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
+     * and new objects from the given Propel collection.
+     *
+     * @param      Collection $documentLogs A Propel collection.
+     * @param      ConnectionInterface $con Optional connection object
+     * @return $this|ChildClient The current object (for fluent API support)
+     */
+    public function setDocumentLogs(Collection $documentLogs, ConnectionInterface $con = null)
+    {
+        /** @var ChildDocumentLog[] $documentLogsToDelete */
+        $documentLogsToDelete = $this->getDocumentLogs(new Criteria(), $con)->diff($documentLogs);
+
+
+        $this->documentLogsScheduledForDeletion = $documentLogsToDelete;
+
+        foreach ($documentLogsToDelete as $documentLogRemoved) {
+            $documentLogRemoved->setClient(null);
+        }
+
+        $this->collDocumentLogs = null;
+        foreach ($documentLogs as $documentLog) {
+            $this->addDocumentLog($documentLog);
+        }
+
+        $this->collDocumentLogs = $documentLogs;
+        $this->collDocumentLogsPartial = false;
+
+        return $this;
+    }
+
+    /**
+     * Returns the number of related DocumentLog objects.
+     *
+     * @param      Criteria $criteria
+     * @param      boolean $distinct
+     * @param      ConnectionInterface $con
+     * @return int             Count of related DocumentLog objects.
+     * @throws PropelException
+     */
+    public function countDocumentLogs(Criteria $criteria = null, $distinct = false, ConnectionInterface $con = null)
+    {
+        $partial = $this->collDocumentLogsPartial && !$this->isNew();
+        if (null === $this->collDocumentLogs || null !== $criteria || $partial) {
+            if ($this->isNew() && null === $this->collDocumentLogs) {
+                return 0;
+            }
+
+            if ($partial && !$criteria) {
+                return count($this->getDocumentLogs());
+            }
+
+            $query = ChildDocumentLogQuery::create(null, $criteria);
+            if ($distinct) {
+                $query->distinct();
+            }
+
+            return $query
+                ->filterByClient($this)
+                ->count($con);
+        }
+
+        return count($this->collDocumentLogs);
+    }
+
+    /**
+     * Method called to associate a ChildDocumentLog object to this object
+     * through the ChildDocumentLog foreign key attribute.
+     *
+     * @param  ChildDocumentLog $l ChildDocumentLog
+     * @return $this|\Box\Model\Client The current object (for fluent API support)
+     */
+    public function addDocumentLog(ChildDocumentLog $l)
+    {
+        if ($this->collDocumentLogs === null) {
+            $this->initDocumentLogs();
+            $this->collDocumentLogsPartial = true;
+        }
+
+        if (!$this->collDocumentLogs->contains($l)) {
+            $this->doAddDocumentLog($l);
+
+            if ($this->documentLogsScheduledForDeletion and $this->documentLogsScheduledForDeletion->contains($l)) {
+                $this->documentLogsScheduledForDeletion->remove($this->documentLogsScheduledForDeletion->search($l));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param ChildDocumentLog $documentLog The ChildDocumentLog object to add.
+     */
+    protected function doAddDocumentLog(ChildDocumentLog $documentLog)
+    {
+        $this->collDocumentLogs[]= $documentLog;
+        $documentLog->setClient($this);
+    }
+
+    /**
+     * @param  ChildDocumentLog $documentLog The ChildDocumentLog object to remove.
+     * @return $this|ChildClient The current object (for fluent API support)
+     */
+    public function removeDocumentLog(ChildDocumentLog $documentLog)
+    {
+        if ($this->getDocumentLogs()->contains($documentLog)) {
+            $pos = $this->collDocumentLogs->search($documentLog);
+            $this->collDocumentLogs->remove($pos);
+            if (null === $this->documentLogsScheduledForDeletion) {
+                $this->documentLogsScheduledForDeletion = clone $this->collDocumentLogs;
+                $this->documentLogsScheduledForDeletion->clear();
+            }
+            $this->documentLogsScheduledForDeletion[]= clone $documentLog;
+            $documentLog->setClient(null);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * If this collection has already been initialized with
+     * an identical criteria, it returns the collection.
+     * Otherwise if this Client is new, it will return
+     * an empty collection; or if this Client has previously
+     * been saved, it will retrieve related DocumentLogs from storage.
+     *
+     * This method is protected by default in order to keep the public
+     * api reasonable.  You can provide public methods for those you
+     * actually need in Client.
+     *
+     * @param      Criteria $criteria optional Criteria object to narrow the query
+     * @param      ConnectionInterface $con optional connection object
+     * @param      string $joinBehavior optional join type to use (defaults to Criteria::LEFT_JOIN)
+     * @return ObjectCollection|ChildDocumentLog[] List of ChildDocumentLog objects
+     */
+    public function getDocumentLogsJoinCollection(Criteria $criteria = null, ConnectionInterface $con = null, $joinBehavior = Criteria::LEFT_JOIN)
+    {
+        $query = ChildDocumentLogQuery::create(null, $criteria);
+        $query->joinWith('Collection', $joinBehavior);
+
+        return $this->getDocumentLogs($query, $con);
+    }
+
+    /**
      * Clears the current object, sets all attributes to their default values and removes
      * outgoing references as well as back-references (from other objects to this one. Results probably in a database
      * change of those foreign objects when you call `save` there).
@@ -1570,9 +2113,12 @@ abstract class Client implements ActiveRecordInterface
     {
         $this->id = null;
         $this->name = null;
+        $this->description = null;
         $this->secret = null;
         $this->is_admin = null;
+        $this->is_disabled = null;
         $this->created_at = null;
+        $this->updated_at = null;
         $this->alreadyInSave = false;
         $this->clearAllReferences();
         $this->applyDefaultValues();
@@ -1597,9 +2143,15 @@ abstract class Client implements ActiveRecordInterface
                     $o->clearAllReferences($deep);
                 }
             }
+            if ($this->collDocumentLogs) {
+                foreach ($this->collDocumentLogs as $o) {
+                    $o->clearAllReferences($deep);
+                }
+            }
         } // if ($deep)
 
         $this->collAccesses = null;
+        $this->collDocumentLogs = null;
     }
 
     /**
@@ -1610,6 +2162,20 @@ abstract class Client implements ActiveRecordInterface
     public function __toString()
     {
         return (string) $this->exportTo(ClientTableMap::DEFAULT_STRING_FORMAT);
+    }
+
+    // timestampable behavior
+
+    /**
+     * Mark the current object so that the update date doesn't get updated during next save
+     *
+     * @return     $this|ChildClient The current object (for fluent API support)
+     */
+    public function keepUpdateDateUnchanged()
+    {
+        $this->modifiedColumns[ClientTableMap::COL_UPDATED_AT] = true;
+
+        return $this;
     }
 
     /**

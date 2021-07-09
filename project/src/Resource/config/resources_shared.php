@@ -6,6 +6,7 @@ return [
         'project'       => 'box',
         'database'      => 'pgsql',
         'dsn'           => 'pgsql:host=PG_HOST;port=PG_PORT;dbname=PG_DATABASE',
+        'db_schema'     => 'PG_SCHEMA',
         'db_user'       => 'PG_USER',
         'db_password'   => 'PG_PASSWORD',
         'platform'      => 'pgsql',
@@ -15,14 +16,26 @@ return [
         'migration_dir' => 'src/Resource/propel/migration',
         'migration_table' => 'box_propel_migration',
     ],
-    'database' => [
-        'db' => 'PG_DATABASE',
+    'pg' => [
+        'real_host' => 'PG_REAL_HOST',
         'host' => 'PG_HOST',
+        'slaves' => 'PG_SLAVES',
         'port' => 'PG_PORT',
-        'username' => 'PG_USER',
+        'database' => 'PG_DATABASE',
+        'schema' => 'PG_SCHEMA',
+        'user' => 'PG_USER',
         'password' => 'PG_PASSWORD',
     ],
     'box' => [
-        'fetch_limit' => 'BOX_FETCH_LIMIT'
+        'test' => 'TEST',
+        'admin_user' => 'BOX_ADMIN_USER',
+        'admin_secret' => 'BOX_ADMIN_SECRET',
+        'fetch_limit' => 'BOX_FETCH_LIMIT',
+        'timezone' => 'BOX_TIMEZONE',
+        'instances' => 'BOX_INSTANCES',
+        'is_system' => 'BOX_IS_SYSTEM',
+        'queue_url' => 'QUEUE_URL',
+        'queue_worker' => 'QUEUE_WORKER',
+        'queue_back_url' => 'QUEUE_BACK_URL',
     ],
 ];
