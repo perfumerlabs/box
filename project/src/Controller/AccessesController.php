@@ -3,6 +3,8 @@
 namespace Box\Controller;
 
 use Box\Model\AccessQuery;
+use Box\Model\ClientQuery;
+use Box\Model\CollQuery;
 use Box\Model\Map\AccessTableMap;
 use Box\Repository\AccessRepository;
 use Propel\Runtime\ActiveQuery\Criteria;
@@ -13,6 +15,7 @@ class AccessesController extends LayoutController
     {
         $this->assertAdmin();
 
+        $search      = $this->f('search');
         $client      = $this->f('client');
         $collection  = $this->f('collection');
         $level       = $this->f('level');
@@ -39,6 +42,27 @@ class AccessesController extends LayoutController
             ->joinWithCollection()
             ->joinWithClient()
             ->orderById(Criteria::DESC);
+
+        if ($search && is_string($search)) {
+            $client_search = ClientQuery::create()->findOneByName($search);
+            $collection_search = CollQuery::create()->findOneByName($search);
+
+            if ($client_search && $collection_search) {
+                $objs = $objs
+                    ->filterByClient($client_search)
+                    ->_or()
+                    ->filterByCollection($collection_search);
+            } elseif ($client_search) {
+                $objs = $objs
+                    ->filterByClient($client_search);
+            } elseif ($collection_search) {
+                $objs = $objs
+                    ->filterByCollection($collection_search);
+            } else {
+                $objs = $objs
+                    ->filterById(0);
+            }
+        }
 
         if ($client) {
             $objs = $objs->filterByClientId((int) $client);
