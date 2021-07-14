@@ -12,6 +12,7 @@ class ClientsController extends LayoutController
         $this->assertAdmin();
 
         $name        = $this->f('name');
+        $secret      = $this->f('secret');
         $is_admin    = $this->f('is_admin');
         $limit       = (int) $this->f('limit');
         $offset      = (int) $this->f('offset');
@@ -33,6 +34,10 @@ class ClientsController extends LayoutController
 
         if ($name) {
             $objs = $objs->filterByName($name);
+        }
+
+        if ($secret) {
+            $objs = $objs->filterBySecret($secret);
         }
 
         if (is_bool($is_admin)) {
